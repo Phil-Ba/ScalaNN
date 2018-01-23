@@ -12,3 +12,4 @@ v.t * m
 math.pow(4, -1)
 val d:Double = "1.0e2".toDouble
 " 0 0 0 0 ".split(' ')
+RandomInitializier.initialize(5, 4)
