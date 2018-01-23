@@ -1,6 +1,10 @@
 package model.nn
 
-class HiddenLayer extends Layer {
+import breeze.linalg.DenseMatrix
 
+class HiddenLayer(private val thetas: DenseMatrix[Double]) extends Layer {
+
+  val units = thetas.rows
+  val inputs = thetas.cols - 1
 
 }
