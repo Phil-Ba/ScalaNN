@@ -26,17 +26,42 @@ trait Layer {
 
 }
 
-trait SourceLayer extends Layer {
+trait ConnectableLayer extends Layer {
 
-  override val inputs = 0
-  override val thetas = DenseMatrix.zeros(0, 0)
+  var nextLayer: Option[Layer] = Option.empty
 
-  var nextLayer: Option[Layer]
+  override protected def activate(x: DenseVector[Double]): Result = {
+    require(nextLayer.isDefined)
+    require(x.length == this.units)
+
+    val (activation, _) = doActivation(x)
+    nextLayer.get.activate(activation)
+  }
+
+  override protected def activateWithGradients(x: DenseVector[Double],
+                                               y: DenseVector[Double]): (Result, Seq[Gradients], Delta) = {
+    require(nextLayer.isDefined)
+    require(x.length == this.units)
+
+    val (activation, z) = doActivation(x)
+    val (result, gradients, prevDelta) = nextLayer.get.activateWithGradients(activation, y)
+
+    val curDelta = thetas.t * prevDelta *:* z
+    val curGradient = prevDelta * activation.t
+    (result, curGradient +: gradients, curDelta)
+  }
 
   def connectTo(nextLayer: Layer): Unit = {
     require(nextLayer.inputs == this.units)
     this.nextLayer = Option(nextLayer)
   }
+
+}
+
+trait SourceLayer extends ConnectableLayer {
+
+  override val inputs = 0
+  override val thetas = DenseMatrix.zeros(0, 0)
 
   override def activate(x: DenseVector[Double]): Result = {
     require(nextLayer.isDefined)
@@ -70,38 +95,6 @@ trait SinkLayer extends Layer {
     val (activation, z) = doActivation(x)
     val delta = activation -:- z
     (activation, Seq.empty, delta)
-  }
-
-}
-
-trait ConnectableLayer extends Layer {
-
-  var nextLayer: Option[Layer]
-
-  override protected def activate(x: DenseVector[Double]): Result = {
-    require(nextLayer.isDefined)
-    require(x.length == this.units)
-
-    val (activation, _) = doActivation(x)
-    nextLayer.get.activate(activation)
-  }
-
-  override protected def activateWithGradients(x: DenseVector[Double],
-                                               y: DenseVector[Double]): (Result, Seq[Gradients], Delta) = {
-    require(nextLayer.isDefined)
-    require(x.length == this.units)
-
-    val (activation, z) = doActivation(x)
-    val (result, gradients, prevDelta) = nextLayer.get.activateWithGradients(activation, y)
-
-    val curDelta = thetas.t * prevDelta *:* z
-    val curGradient = prevDelta * activation.t
-    (result, curGradient +: gradients, curDelta)
-  }
-
-  def connectTo(nextLayer: Layer): Unit = {
-    require(nextLayer.inputs == this.units)
-    this.nextLayer = Option(nextLayer)
   }
 
 }
