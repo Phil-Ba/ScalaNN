@@ -1,5 +1,6 @@
 import breeze.linalg._
 import model.nn.HiddenLayer
+import util.RandomInitializier
 
 DenseVector.fill[Int](3, 2)
 val m = DenseMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
@@ -17,3 +18,5 @@ val X = RandomInitializier.initialize(5, 4)
 val hl = new HiddenLayer(X)
 hl.inputs
 hl.units
+
+require(1 == 2)
