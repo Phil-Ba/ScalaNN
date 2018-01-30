@@ -8,6 +8,8 @@ object Layers {
   trait Layer {
     type Result = DenseVector[Double]
     type Delta = DenseVector[Double]
+    type Activation = DenseVector[Double]
+    type Z = DenseVector[Double]
     type Gradients = DenseMatrix[Double]
     type Thetas = DenseMatrix[Double]
 
@@ -16,15 +18,15 @@ object Layers {
     val inputs: Int
 
     protected def validateXInput(x: DenseVector[Double]) = {
-      require(x.length == this.units, s"x.length(${x.length}) | this.units($units)")
+      require(x.length == this.inputs, s"x.length(${x.length}) | this.inputs($inputs)")
     }
 
     protected def validateXMatchesY(x: DenseVector[Double], y: DenseVector[Double]) = {
       require(x.length == y.length, s"x.length(${x.length}) | y.length(${y.length})")
     }
 
-    protected def doActivation(x: DenseVector[Double]) = {
-      val z = thetas * x
+    protected def doActivation(x: DenseVector[Double]): (Activation, Z) = {
+      val z = thetas * DenseVector.vertcat(DenseVector(1d), x)
       val a = Sigmoid.sigmoid(z)
       (a, z)
     }
@@ -70,7 +72,6 @@ object Layers {
 
   trait SourceLayer extends ConnectableLayer {
 
-    override val inputs = 0
     override var thetas = DenseMatrix.zeros(0, 0)
 
     override def activate(x: DenseVector[Double]): Result = {
