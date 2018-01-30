@@ -81,7 +81,8 @@ object Layers {
       nextLayer.get.activate(x)
     }
 
-    override def activateWithGradients(x: DenseVector[Double], y: DenseVector[Double]) = {
+    override def activateWithGradients(x: DenseVector[Double],
+                                       y: DenseVector[Double]): (Result, Seq[Gradients], Delta) = {
       require(nextLayer.isDefined)
       validateXInput(x)
       validateXMatchesY(x, y)
@@ -93,7 +94,7 @@ object Layers {
 
   trait SinkLayer extends Layer {
 
-    override def activate(x: DenseVector[Double]): Result = {
+    override protected[Layers] def activate(x: DenseVector[Double]): Result = {
       validateXInput(x)
 
       val (activation, _) = doActivation(x)
@@ -101,7 +102,8 @@ object Layers {
       activation
     }
 
-    override def activateWithGradients(x: DenseVector[Double], y: DenseVector[Double]) = {
+    override protected[Layers] def activateWithGradients(x: DenseVector[Double],
+                                                         y: DenseVector[Double]): (Result, Seq[Gradients], Delta) = {
       validateXInput(x)
 
       val (activation, z) = doActivation(x)
