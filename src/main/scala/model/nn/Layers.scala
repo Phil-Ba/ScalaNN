@@ -3,98 +3,112 @@ package model.nn
 import breeze.linalg.{DenseMatrix, DenseVector}
 import util.Sigmoid
 
-trait Layer {
-  type Result = DenseVector[Double]
-  type Delta = DenseVector[Double]
-  type Gradients = DenseMatrix[Double]
-  type Thetas = DenseMatrix[Double]
+object Layers {
 
-  var thetas: Thetas
-  val units: Int
-  val inputs: Int
+  trait Layer {
+    type Result = DenseVector[Double]
+    type Delta = DenseVector[Double]
+    type Gradients = DenseMatrix[Double]
+    type Thetas = DenseMatrix[Double]
 
-  protected def doActivation(x: DenseVector[Double]) = {
-    val z = thetas * x
-    val a = Sigmoid.sigmoid(z)
-    (a, z)
+    protected var thetas: Thetas
+    val units: Int
+    val inputs: Int
+
+    protected def validateXInput(x: DenseVector[Double]) = {
+      require(x.length == this.units, s"x.length(${x.length}) | this.units($units)")
+    }
+
+    protected def validateXMatchesY(x: DenseVector[Double], y: DenseVector[Double]) = {
+      require(x.length == y.length, s"x.length(${x.length}) | y.length(${y.length})")
+    }
+
+    protected def doActivation(x: DenseVector[Double]) = {
+      val z = thetas * x
+      val a = Sigmoid.sigmoid(z)
+      (a, z)
+    }
+
+    protected[Layers] def activate(x: DenseVector[Double]): Result
+
+    protected[Layers] def activateWithGradients(x: DenseVector[Double],
+                                                y: DenseVector[Double]): (Result, Seq[Gradients], Delta)
+
   }
 
-  protected def activate(x: DenseVector[Double]): Result
+  trait ConnectableLayer extends Layer {
 
-  protected def activateWithGradients(x: DenseVector[Double],
-                                      y: DenseVector[Double]): (Result, Seq[Gradients], Delta)
+    var nextLayer: Option[Layer] = Option.empty
 
-}
+    override protected[Layers] def activate(x: DenseVector[Double]): Result = {
+      require(nextLayer.isDefined)
+      validateXInput(x)
 
-trait ConnectableLayer extends Layer {
+      val (activation, _) = doActivation(x)
+      nextLayer.get.activate(activation)
+    }
 
-  var nextLayer: Option[Layer] = Option.empty
+    override protected[Layers] def activateWithGradients(x: DenseVector[Double],
+                                                         y: DenseVector[Double]): (Result, Seq[Gradients], Delta) = {
+      require(nextLayer.isDefined)
+      validateXInput(x)
 
-  override protected def activate(x: DenseVector[Double]): Result = {
-    require(nextLayer.isDefined)
-    require(x.length == this.units)
+      val (activation, z) = doActivation(x)
+      val (result, gradients, prevDelta) = nextLayer.get.activateWithGradients(activation, y)
 
-    val (activation, _) = doActivation(x)
-    nextLayer.get.activate(activation)
+      val curDelta = thetas.t * prevDelta *:* z
+      val curGradient = prevDelta * activation.t
+      (result, curGradient +: gradients, curDelta)
+    }
+
+    def connectTo(nextLayer: Layer): Unit = {
+      require(nextLayer.inputs == this.units, s"nextLayer.inputs(${nextLayer.inputs}) | this.units($units)")
+      this.nextLayer = Option(nextLayer)
+    }
+
   }
 
-  override protected def activateWithGradients(x: DenseVector[Double],
-                                               y: DenseVector[Double]): (Result, Seq[Gradients], Delta) = {
-    require(nextLayer.isDefined)
-    require(x.length == this.units)
+  trait SourceLayer extends ConnectableLayer {
 
-    val (activation, z) = doActivation(x)
-    val (result, gradients, prevDelta) = nextLayer.get.activateWithGradients(activation, y)
+    override val inputs = 0
+    override var thetas = DenseMatrix.zeros(0, 0)
 
-    val curDelta = thetas.t * prevDelta *:* z
-    val curGradient = prevDelta * activation.t
-    (result, curGradient +: gradients, curDelta)
+    override def activate(x: DenseVector[Double]): Result = {
+      require(nextLayer.isDefined)
+      validateXInput(x)
+
+      nextLayer.get.activate(x)
+    }
+
+    override def activateWithGradients(x: DenseVector[Double], y: DenseVector[Double]) = {
+      require(nextLayer.isDefined)
+      validateXInput(x)
+      validateXMatchesY(x, y)
+
+      nextLayer.get.activateWithGradients(x, y)
+    }
+
   }
 
-  def connectTo(nextLayer: Layer): Unit = {
-    require(nextLayer.inputs == this.units)
-    this.nextLayer = Option(nextLayer)
-  }
+  trait SinkLayer extends Layer {
 
-}
+    override def activate(x: DenseVector[Double]): Result = {
+      validateXInput(x)
 
-trait SourceLayer extends ConnectableLayer {
+      val (activation, _) = doActivation(x)
 
-  override val inputs = 0
-  override val thetas = DenseMatrix.zeros(0, 0)
+      activation
+    }
 
-  override def activate(x: DenseVector[Double]): Result = {
-    require(nextLayer.isDefined)
-    require(x.length == this.units)
-    nextLayer.get.activate(x)
-  }
+    override def activateWithGradients(x: DenseVector[Double], y: DenseVector[Double]) = {
+      validateXInput(x)
 
-  override def activateWithGradients(x: DenseVector[Double], y: DenseVector[Double]) = {
-    require(nextLayer.isDefined)
-    require(x.length == this.units)
-    require(x.length == y.length)
+      val (activation, z) = doActivation(x)
+      val delta = activation -:- z
+      (activation, Seq.empty, delta)
+    }
 
-    nextLayer.get.activateWithGradients(x, y)
-  }
 
-}
-
-trait SinkLayer extends Layer {
-
-  override def activate(x: DenseVector[Double]): Result = {
-    require(x.length == this.units)
-    val (activation, _) = doActivation(x)
-
-    activation
-  }
-
-  override def activateWithGradients(x: DenseVector[Double], y: DenseVector[Double]) = {
-    require(x.length == this.units)
-    require(x.length == y.length)
-
-    val (activation, z) = doActivation(x)
-    val delta = activation -:- z
-    (activation, Seq.empty, delta)
   }
 
 }

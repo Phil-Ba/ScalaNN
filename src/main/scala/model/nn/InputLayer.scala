@@ -1,9 +1,9 @@
 package model.nn
 
-import breeze.linalg.DenseMatrix
+import model.nn.Layers.SourceLayer
 
-class InputLayer(private val data: DenseMatrix[Double]) extends SourceLayer {
+class InputLayer(size: Int) extends SourceLayer {
 
-  val units: Int = data.cols
+  val units: Int = size
 
 }
