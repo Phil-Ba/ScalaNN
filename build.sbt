@@ -11,5 +11,7 @@ val breezeVersion = "0.13.+"
 libraryDependencies ++= Seq(
   "org.scalanlp" %% "breeze" % breezeVersion,
   "org.scalanlp" %% "breeze-natives" % breezeVersion,
-  "org.scalanlp" %% "breeze-viz" % breezeVersion
+  "org.scalanlp" %% "breeze-viz" % breezeVersion,
+
+  "org.scalatest" %% "scalatest" % "3.0.+" % "test"
 )
