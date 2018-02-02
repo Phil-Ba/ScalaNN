@@ -1,4 +1,5 @@
-import breeze.linalg.DenseMatrix
+import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4s.Implicits.doubleArray2INDArray
 
 import scala.collection.immutable.HashMap
 import scala.io.Codec
@@ -8,16 +9,16 @@ import scala.io.Codec
   */
 object MatlabImporter {
 
-  def apply(file: String): HashMap[String, DenseMatrix[Double]] = {
+  def apply(file: String): HashMap[String, INDArray] = {
     val lines = scala.io.Source.fromFile(file)(Codec.ISO8859)
       .getLines()
 
-    var data = HashMap[String, DenseMatrix[Double]]()
+    var data = HashMap[String, INDArray]()
 
     while (lines.hasNext) {
       readHeaders(lines).foreach(header => {
         val (name, _, rows, columns) = header
-        data += (name -> readData(rows, columns, lines) )
+        data += (name -> readData(rows, columns, lines))
       })
     }
 
@@ -37,11 +38,11 @@ object MatlabImporter {
     }
   }
 
-  private def readData(rows: Int, columns: Int, lines: Iterator[String]): DenseMatrix[Double] = {
+  private def readData(rows: Int, columns: Int, lines: Iterator[String]): INDArray = {
     val data = lines.take(rows)
       .flatMap(row => row.tail.split(' ').map(_.toDouble))
       .toArray
-    new DenseMatrix(rows, columns, data)
+    data.asNDArray(rows, columns)
   }
 
 }

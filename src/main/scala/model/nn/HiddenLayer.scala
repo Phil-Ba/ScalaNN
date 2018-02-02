@@ -1,11 +1,11 @@
 package model.nn
 
-import breeze.linalg.DenseMatrix
 import model.nn.Layers.ConnectableLayer
+import org.nd4j.linalg.api.ndarray.INDArray
 
-class HiddenLayer(override var thetas: DenseMatrix[Double]) extends ConnectableLayer {
+class HiddenLayer(override var thetas: INDArray) extends ConnectableLayer {
 
   override val units = thetas.rows
-  override val inputs = thetas.cols - 1
+  override val inputs = thetas.columns - 1
 
 }

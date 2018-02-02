@@ -1,40 +1,43 @@
 package model.nn
 
-import breeze.linalg.{DenseMatrix, DenseVector}
-import util.Sigmoid
+import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.factory.Nd4j
+import org.nd4j.linalg.ops.transforms.Transforms
+import org.nd4s.Implicits._
 
 object Layers {
 
   trait Layer {
-    type Result = DenseVector[Double]
-    type Delta = DenseVector[Double]
-    type Activation = DenseVector[Double]
-    type Z = DenseVector[Double]
-    type Gradients = DenseMatrix[Double]
-    type Thetas = DenseMatrix[Double]
+    type Result = INDArray
+    type Delta = INDArray
+    type Activation = INDArray
+    type Z = INDArray
+    type Gradients = INDArray
+    type Thetas = INDArray
 
     protected var thetas: Thetas
     val units: Int
     val inputs: Int
 
-    protected def validateXInput(x: DenseVector[Double]) = {
-      require(x.length == this.inputs, s"x.length(${x.length}) | this.inputs($inputs)")
+    protected def validateXInput(x: INDArray) = {
+      require(x.columns() == this.inputs, s"x.cols(${x.columns()}) | this.inputs($inputs)")
     }
 
-    protected def validateXMatchesY(x: DenseVector[Double], y: DenseVector[Double]) = {
-      require(x.length == y.length, s"x.length(${x.length}) | y.length(${y.length})")
+    protected def validateXMatchesY(x: INDArray, y: INDArray) = {
+      require(x.columns() == y.columns(), s"x.cols(${x.columns()}) | y.cols(${y.columns()})")
     }
 
-    protected def doActivation(x: DenseVector[Double]): (Activation, Z) = {
-      val z = thetas * DenseVector.vertcat(DenseVector(1d), x)
-      val a = Sigmoid.sigmoid(z)
+    protected def doActivation(x: INDArray): (Activation, Z) = {
+      val xPlusBias = Nd4j.hstack(Nd4j.ones(x.rows, 1), x)
+      val z = thetas dot xPlusBias.T
+      val a = Transforms.sigmoid(z)
       (a, z)
     }
 
-    protected[Layers] def activate(x: DenseVector[Double]): Result
+    protected[Layers] def activate(x: INDArray): Result
 
-    protected[Layers] def activateWithGradients(x: DenseVector[Double],
-                                                y: DenseVector[Double]): (Result, Seq[Gradients], Delta)
+    protected[Layers] def activateWithGradients(x: INDArray,
+                                                y: INDArray): (Result, Seq[Gradients], Delta)
 
   }
 
@@ -42,7 +45,7 @@ object Layers {
 
     var nextLayer: Option[Layer] = Option.empty
 
-    override protected[Layers] def activate(x: DenseVector[Double]): Result = {
+    override protected[Layers] def activate(x: INDArray): Result = {
       require(nextLayer.isDefined)
       validateXInput(x)
 
@@ -50,16 +53,16 @@ object Layers {
       nextLayer.get.activate(activation)
     }
 
-    override protected[Layers] def activateWithGradients(x: DenseVector[Double],
-                                                         y: DenseVector[Double]): (Result, Seq[Gradients], Delta) = {
+    override protected[Layers] def activateWithGradients(x: INDArray,
+                                                         y: INDArray): (Result, Seq[Gradients], Delta) = {
       require(nextLayer.isDefined)
       validateXInput(x)
 
       val (activation, z) = doActivation(x)
       val (result, gradients, prevDelta) = nextLayer.get.activateWithGradients(activation, y)
 
-      val curDelta = thetas.t * prevDelta *:* z
-      val curGradient = prevDelta * activation.t
+      val curDelta = thetas.T dot prevDelta * z
+      val curGradient = prevDelta dot activation.T
       (result, curGradient +: gradients, curDelta)
     }
 
@@ -72,17 +75,17 @@ object Layers {
 
   trait SourceLayer extends ConnectableLayer {
 
-    override var thetas = DenseMatrix.zeros(0, 0)
+    override protected var thetas: Thetas = _
 
-    override def activate(x: DenseVector[Double]): Result = {
+    override def activate(x: INDArray): Result = {
       require(nextLayer.isDefined)
       validateXInput(x)
 
       nextLayer.get.activate(x)
     }
 
-    override def activateWithGradients(x: DenseVector[Double],
-                                       y: DenseVector[Double]): (Result, Seq[Gradients], Delta) = {
+    override def activateWithGradients(x: INDArray,
+                                       y: INDArray): (Result, Seq[Gradients], Delta) = {
       require(nextLayer.isDefined)
       validateXInput(x)
       validateXMatchesY(x, y)
@@ -94,7 +97,7 @@ object Layers {
 
   trait SinkLayer extends Layer {
 
-    override protected[Layers] def activate(x: DenseVector[Double]): Result = {
+    override protected[Layers] def activate(x: INDArray): Result = {
       validateXInput(x)
 
       val (activation, _) = doActivation(x)
@@ -102,12 +105,12 @@ object Layers {
       activation
     }
 
-    override protected[Layers] def activateWithGradients(x: DenseVector[Double],
-                                                         y: DenseVector[Double]): (Result, Seq[Gradients], Delta) = {
+    override protected[Layers] def activateWithGradients(x: INDArray,
+                                                         y: INDArray): (Result, Seq[Gradients], Delta) = {
       validateXInput(x)
 
       val (activation, z) = doActivation(x)
-      val delta = activation -:- z
+      val delta = activation - z
       (activation, Seq.empty, delta)
     }
 
