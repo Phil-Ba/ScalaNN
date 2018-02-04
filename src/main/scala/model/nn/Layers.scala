@@ -61,14 +61,12 @@ object Layers {
       val (activation, z) = doActivation(x)
       val (result, gradients, prevDelta) = nextLayer.get.activateWithGradients(activation.T, y)
       val nextThetas = nextLayer.get.thetas
+      logger.debug("theta[{}]", thetas.shapeInfoToString())
+      logger.debug("prevDelta[{}]", prevDelta.shapeInfoToString())
+      logger.debug("z[{}]", z.shapeInfoToString())
+      logger.debug("nextThetas[{}]", nextLayer.get.thetas.shapeInfoToString())
       //26x10 10x1 25x1
-      val curDelta = (nextThetas(->, 1 -> nextThetas.columns()).T dot prevDelta) * Transforms.sigmoidDerivative(z)
-      //      val curDelta = (nextLayer.get.thetas.T dot prevDelta) * Nd4j.vstack(Nd4j.ones(1, 1), Transforms.sigmoidDerivative(z))
-      //25x401 10x1 25x1
-      //      val curDelta = thetas.T dot prevDelta * Transforms.sigmoidDerivative(z)
-      //      10x1 25x1
-      //curDelta[25x1]
-      //x[1x400]
+      val curDelta = (nextThetas(->, 1 -> nextThetas.columns()).T dot prevDelta) * Transforms.sigmoidDerivative(z, true)
       val curGradient = curDelta dot Nd4j.hstack(Nd4j.ones(1, 1), x)
       (result, curGradient +: gradients, curDelta)
     }
@@ -120,10 +118,13 @@ object Layers {
                                                          y: INDArray): (Result, Seq[Gradients], Delta) = {
       validateXInput(x)
 
-      val (activation, z) = doActivation(x)
+      val (activation, _) = doActivation(x)
 
-      val delta = activation - z
-
+      val delta = activation - y
+      logger.debug("X[{}]", x)
+      logger.debug("Y[{}]", y)
+      logger.debug("Activation[{}]", activation)
+      logger.debug("Delta[{}]", delta)
       //      10x1 1x25
       val curGradient = delta dot Nd4j.hstack(Nd4j.ones(1, 1), x)
 
