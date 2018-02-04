@@ -10,6 +10,8 @@
 
     <logger name="util" level="DEBUG"/>
     <logger name="model.nn" level="info"/>
+    <logger name="model.nn.OutputLayer" level="info"/>
+    <logger name="model.nn.HiddenLayer" level="info"/>
     <logger name="util.CostFunction$" level="info"/>
     <logger name="util.NumericalGradient$" level="info"/>
     <root level="INFO">
