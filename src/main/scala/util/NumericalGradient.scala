@@ -14,7 +14,7 @@ object NumericalGradient extends StrictLogging {
     val eps = 0.0001D
     val sum = thetas.map(_.length()).sum
     var count = 0
-    val tenPercent = sum / 100 * 10
+    val tenPercent = math.ceil(sum / 100D * 10)
     thetas.map(theta => {
       val rows = theta.rows()
       val columns = theta.columns
