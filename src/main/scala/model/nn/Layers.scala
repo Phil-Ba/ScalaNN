@@ -1,5 +1,6 @@
 package model.nn
 
+import com.typesafe.scalalogging.StrictLogging
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
@@ -7,7 +8,7 @@ import org.nd4s.Implicits._
 
 object Layers {
 
-  trait Layer {
+  trait Layer extends StrictLogging {
     type Result = INDArray
     type Delta = INDArray
     type Activation = INDArray
@@ -15,7 +16,7 @@ object Layers {
     type Gradients = INDArray
     type Thetas = INDArray
 
-    protected var thetas: Thetas
+    var thetas: Thetas
     val units: Int
     val inputs: Int
 
@@ -23,12 +24,9 @@ object Layers {
       require(x.columns() == this.inputs, s"x.cols(${x.columns()}) | this.inputs($inputs)")
     }
 
-    protected def validateXMatchesY(x: INDArray, y: INDArray) = {
-      require(x.columns() == y.columns(), s"x.cols(${x.columns()}) | y.cols(${y.columns()})")
-    }
-
     protected def doActivation(x: INDArray): (Activation, Z) = {
       val xPlusBias = Nd4j.hstack(Nd4j.ones(x.rows, 1), x)
+      //units X inputs   inputs X samples
       val z = thetas dot xPlusBias.T
       val a = Transforms.sigmoid(z)
       (a, z)
@@ -50,19 +48,28 @@ object Layers {
       validateXInput(x)
 
       val (activation, _) = doActivation(x)
-      nextLayer.get.activate(activation)
+      logger.debug("{} got input[{}] and produced output[{}]", this, x.shape().mkString("x"), activation.shape().mkString("x"))
+
+      nextLayer.get.activate(activation.T)
     }
 
     override protected[Layers] def activateWithGradients(x: INDArray,
                                                          y: INDArray): (Result, Seq[Gradients], Delta) = {
       require(nextLayer.isDefined)
       validateXInput(x)
-
+      //25x401
       val (activation, z) = doActivation(x)
-      val (result, gradients, prevDelta) = nextLayer.get.activateWithGradients(activation, y)
-
-      val curDelta = thetas.T dot prevDelta * z
-      val curGradient = prevDelta dot activation.T
+      val (result, gradients, prevDelta) = nextLayer.get.activateWithGradients(activation.T, y)
+      val nextThetas = nextLayer.get.thetas
+      //26x10 10x1 25x1
+      val curDelta = (nextThetas(->, 1 -> nextThetas.columns()).T dot prevDelta) * Transforms.sigmoidDerivative(z)
+      //      val curDelta = (nextLayer.get.thetas.T dot prevDelta) * Nd4j.vstack(Nd4j.ones(1, 1), Transforms.sigmoidDerivative(z))
+      //25x401 10x1 25x1
+      //      val curDelta = thetas.T dot prevDelta * Transforms.sigmoidDerivative(z)
+      //      10x1 25x1
+      //curDelta[25x1]
+      //x[1x400]
+      val curGradient = curDelta dot Nd4j.hstack(Nd4j.ones(1, 1), x)
       (result, curGradient +: gradients, curDelta)
     }
 
@@ -75,7 +82,11 @@ object Layers {
 
   trait SourceLayer extends ConnectableLayer {
 
-    override protected var thetas: Thetas = _
+    override protected def validateXInput(x: Thetas): Unit = {
+      require(x.columns() == this.inputs, s"x.cols(${x.columns}) | this.inputs($inputs)")
+    }
+
+    override var thetas: Thetas = _
 
     override def activate(x: INDArray): Result = {
       require(nextLayer.isDefined)
@@ -88,7 +99,6 @@ object Layers {
                                        y: INDArray): (Result, Seq[Gradients], Delta) = {
       require(nextLayer.isDefined)
       validateXInput(x)
-      validateXMatchesY(x, y)
 
       nextLayer.get.activateWithGradients(x, y)
     }
@@ -101,6 +111,7 @@ object Layers {
       validateXInput(x)
 
       val (activation, _) = doActivation(x)
+      logger.debug("{} got input[{}] and produced output[{}]", this, x.shape().mkString("x"), activation.shape().mkString("x"))
 
       activation
     }
@@ -110,8 +121,13 @@ object Layers {
       validateXInput(x)
 
       val (activation, z) = doActivation(x)
+
       val delta = activation - z
-      (activation, Seq.empty, delta)
+
+      //      10x1 1x25
+      val curGradient = delta dot Nd4j.hstack(Nd4j.ones(1, 1), x)
+
+      (activation, Seq(curGradient), delta)
     }
 
 
