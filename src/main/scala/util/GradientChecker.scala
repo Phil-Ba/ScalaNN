@@ -2,6 +2,7 @@ package util
 
 import model.nn.{HiddenLayer, InputLayer, OutputLayer}
 import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4s.Implicits._
 
@@ -11,13 +12,21 @@ import org.nd4s.Implicits._
 object GradientChecker {
 
   def check(x: INDArray, y: INDArray) = {
-    val inputsSource = 400
-    val hiddenLayerSize = 25
+    val inputsSource = 3
+    val hiddenLayerSize = 5
+    val labels = 3
+    val testDataAmount = 1
+
+    val x = RandomInitializier.initialize(testDataAmount, inputsSource - 1, 0.5)
+    val y = Nd4j.zeros(labels, testDataAmount)
+    for (sample <- 0 until testDataAmount) {
+      y(sample % (labels - 1), sample) = 1
+    }
 
     //hls X inpS+1
     val theta1 = RandomInitializier.initialize(hiddenLayerSize, inputsSource, 0.5)
     //10 X hls+1
-    val theta2 = RandomInitializier.initialize(10, hiddenLayerSize, 0.5)
+    val theta2 = RandomInitializier.initialize(labels, hiddenLayerSize, 0.5)
 
     val inputLayer = new InputLayer(inputsSource)
     val hiddenLayer = new HiddenLayer(theta1)
@@ -46,6 +55,11 @@ object GradientChecker {
     println(s"diffT1[{${diffT1 / gradT1.length()}]")
     println(s"diffT2[{$diffT2}]")
     println(s"diffT1[{${diffT2 / gradT2.length()}]")
+
+    println("-----t1------")
+    println(Nd4j.hstack(gradT1.reshape(gradT1.length(), 1), gradT1Approx.reshape(gradT1.length(), 1)))
+    println("-----t2------")
+    println(Nd4j.hstack(gradT2.reshape(gradT2.length(), 1), gradT2Approx.reshape(gradT2.length(), 1)))
   }
 
 }
