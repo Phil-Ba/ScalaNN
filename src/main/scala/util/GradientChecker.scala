@@ -16,7 +16,7 @@ object GradientChecker extends StrictLogging {
     val hiddenLayer1Size = 4
     val hiddenLayer2Size = 5
     val labels = 3
-    val testDataAmount = 1
+    val testDataAmount = 10
 
     val x = RandomInitializier.initialize(testDataAmount, inputsSource - 1, 0.5)
     val y = Nd4j.zeros(labels, testDataAmount)
@@ -36,10 +36,26 @@ object GradientChecker extends StrictLogging {
     hiddenLayer1.connectTo(hiddenLayer2)
     hiddenLayer2.connectTo(outputLayer)
 
-    val (_, gradients, _) = inputLayer.activateWithGradients(x, y)
-    val costFunction = () => CostFunction.cost(() => inputLayer.activate(x), y)
-    val gradientsApprox = NumericalGradient.approximateGradients(costFunction, Seq(theta1, theta2, theta3))
+    val tuples = for {
+      i <- 0 until testDataAmount
+      xCur = x(i, ->)
+      yCur = y(->, i)
+    } yield {
+      val (_, gradients, _) = inputLayer.activateWithGradients(xCur, yCur)
+      val costFunction = () => CostFunction.cost(() => inputLayer.activate(xCur), yCur)
+      val gradientsApprox = NumericalGradient.approximateGradients(costFunction, Seq(theta1, theta2, theta3))
+      (gradients, gradientsApprox)
+    }
 
+    val (gradients, gradientsApprox) = tuples.reduce((t1, t2) => {
+      (Seq(t1._1(0) + t2._1(0),
+        t1._1(1) + t2._1(1),
+        t1._1(2) + t2._1(2)),
+        Seq(t1._2(0) + t2._2(0),
+          t1._2(1) + t2._2(1),
+          t1._2(2) + t2._2(2))
+      )
+    })
 
     val gradT1 = gradients(0)
     val gradT1Approx = gradientsApprox(0)
