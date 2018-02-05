@@ -27,7 +27,7 @@ object Main {
     val yReshaped = yMappedCols.reshape('f', 10, y.rows())
 
     val (xS, yS) = sample(x, yReshaped, 5)
-    GradientChecker.check(xS, yS)
+    GradientChecker.check()
   }
 
   def sample(x: INDArray, y: INDArray, amount: Int = 100) = {
