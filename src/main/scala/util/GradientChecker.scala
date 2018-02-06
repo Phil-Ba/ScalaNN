@@ -16,7 +16,7 @@ object GradientChecker extends StrictLogging {
     val hiddenLayer1Size = 4
     val hiddenLayer2Size = 5
     val labels = 3
-    val testDataAmount = 10
+    val testDataAmount = 100
 
     val x = RandomInitializier.initialize(testDataAmount, inputsSource - 1, 0.5)
     val y = Nd4j.zeros(labels, testDataAmount)
