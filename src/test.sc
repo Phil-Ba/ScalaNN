@@ -4,13 +4,25 @@ import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4s.Implicits._
 import util.{CostFunction, RandomInitializier}
 
+
+Seq(1, 2, 3, 4, 5, 6, 7, 9, 10)
+val is = for {
+  i <- 1 to 10
+} yield {
+  i
+}
+val y11 = (1 to 3).asNDArray(3, 1)
+val y22 = (4 to 6).asNDArray(3, 1)
+val y33 = (7 to 9).asNDArray(3, 1)
+
+Nd4j.hstack(y11, y22, y33)
+
 Nd4j.setDataType(DataBuffer.Type.DOUBLE)
 var m = Nd4j.zeros(3, 2)
 m = Nd4j.hstack(Nd4j.ones(m.rows(), 1), m)
-m = (1 to 12).asNDArray(4, 3)
+m = (1 to 1).asNDArray(1, 1)
 
-m(--->)
-
+m.isScalar
 m(1 -> m.rows(), ->)
 
 "---"
