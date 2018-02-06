@@ -2,6 +2,7 @@ package util
 
 import com.typesafe.scalalogging.StrictLogging
 import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4s.Implicits._
 
@@ -23,7 +24,7 @@ object CostFunction extends StrictLogging {
     require(calcY.shape() sameElements y.shape(), s"calcy(${calcY.shape().mkString("x")}) should be same as y(${y.shape().mkString("x")})")
     val m = y.columns()
     val avg = 1D / m
-    var cost = 0D
+    val costVec = Nd4j.zeros(m)
     for (i <- 0 until m) {
       val yT = y(->, i).T
       val curCalcY = calcY(->, i)
@@ -31,13 +32,13 @@ object CostFunction extends StrictLogging {
       val logOneMinusCalcY = Transforms.log(curCalcY.rsub(1D))
 
       val c = (yT.neg() dot logCalcY) - (yT.rsub(1D) dot logOneMinusCalcY)
-      require(c.shape() sameElements Array(1, 1))
-      val curCost = c(0, 0) * avg
+      require(c.isScalar)
+      val curCost = c(0, 0)
       logger.debug("cost for y[{}] and yCalc[{}] = {}", yT, curCalcY, curCost)
-      cost += curCost
+      costVec(i) = curCost
     }
 
-    cost
+    costVec.sumNumber().doubleValue() * avg
   }
 
 }
