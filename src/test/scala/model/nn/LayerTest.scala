@@ -1,5 +1,6 @@
 package model.nn
 
+import org.nd4j.linalg.factory.Nd4j
 import org.nd4s.Implicits._
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{FunSpec, Matchers}
@@ -23,10 +24,15 @@ class LayerTest extends FunSpec with Matchers with TableDrivenPropertyChecks {
     forAll(andTable) { (x1: Int, x2: Int, expected: Int) =>
       it(s"should produce $expected for input x1($x1) AND x2($x2)") {
         val result = in.activate(Array(x1.toDouble, x2.toDouble).toNDArray)
-        //        in.activateWithGradients(Array(x1, x2), DenseVector(1.0))
+        val (r, g, _) = in.activateWithGradients(Array(x1, x2).toNDArray, Nd4j.ones(1))
+        println(r)
+        println(g)
         result.length shouldBe 1
         result(0) shouldBe expected.toDouble +- 0.001
       }
+    }
+    it("") {
+      println(in.activate(Array(1, 0, 1, 1, 0, 1, 0, 0).asNDArray(3, 2)))
     }
   }
 

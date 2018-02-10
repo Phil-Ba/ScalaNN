@@ -16,7 +16,7 @@ object Layers {
     type Gradients = INDArray
     type Thetas = INDArray
 
-    var thetas: Thetas
+    protected[Layers] val thetas: Thetas
     val units: Int
     val inputs: Int
 
@@ -80,11 +80,21 @@ object Layers {
 
   trait SourceLayer extends ConnectableLayer {
 
+    def updateWithGradients(gradients: Seq[Gradients]): Unit = {
+      gradients.foldLeft(nextLayer) { (layer, gradient) =>
+        layer.foreach(_.thetas -= gradient)
+        layer match {
+          case cl: ConnectableLayer => cl.nextLayer
+          case _ => None
+        }
+      }
+    }
+
     override protected def validateXInput(x: Thetas): Unit = {
       require(x.columns() == this.inputs, s"x.cols(${x.columns}) | this.inputs($inputs)")
     }
 
-    override var thetas: Thetas = _
+    override protected[Layers] val thetas: Thetas = null
 
     override def activate(x: INDArray): Result = {
       require(nextLayer.isDefined)

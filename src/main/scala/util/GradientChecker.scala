@@ -37,7 +37,8 @@ object GradientChecker extends StrictLogging {
     hiddenLayer2.connectTo(outputLayer)
 
     val costFunction = () => CostFunction.cost(NNRunner.runWithData(x, inputLayer), y)
-    val gradientsApprox = NumericalGradient.approximateGradients(costFunction, Seq(theta1, theta2, theta3))
+    val gradientsApprox = NumericalGradient
+      .approximateGradients(costFunction, inputLayer, Seq(theta1.shape(), theta2.shape(), theta3.shape()))
 
     val (_, gradients) = NNRunner.runWithData(x, y, inputLayer)
 

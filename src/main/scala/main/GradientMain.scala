@@ -40,7 +40,7 @@ object GradientMain {
     hiddenLayer1.connectTo(hiddenLayer2)
     hiddenLayer2.connectTo(outputLayer)
 
-    GradientDescender.minimize(x, yReshaped, inputLayer, Seq(theta1, theta2, theta3))
+    GradientDescender.minimize(x, yReshaped, inputLayer)
   }
 
 }
