@@ -11,22 +11,22 @@ import org.nd4s.Implicits._
   */
 object GradientChecker extends StrictLogging {
 
-  def check() = {
+  def check(): Seq[(Double, Double)] = {
     val inputsSource = 3
     val hiddenLayer1Size = 4
     val hiddenLayer2Size = 5
     val labels = 3
     val testDataAmount = 100
 
-    val x = RandomInitializier.initialize(testDataAmount, inputsSource - 1, 0.5)
+    val x = RandomInitializier.initialize(testDataAmount, inputsSource - 1, 50)
     val y = Nd4j.zeros(labels, testDataAmount)
     for (sample <- 0 until testDataAmount) {
-      y(sample % (labels), sample) = 1
+      y(sample % labels, sample) = 1
     }
 
-    val theta1 = RandomInitializier.initialize(hiddenLayer1Size, inputsSource, 0.5)
-    val theta2 = RandomInitializier.initialize(hiddenLayer2Size, hiddenLayer1Size, 0.5)
-    val theta3 = RandomInitializier.initialize(labels, hiddenLayer2Size, 0.5)
+    val theta1 = RandomInitializier.initialize(hiddenLayer1Size, inputsSource, 1)
+    val theta2 = RandomInitializier.initialize(hiddenLayer2Size, hiddenLayer1Size, 1)
+    val theta3 = RandomInitializier.initialize(labels, hiddenLayer2Size, 1)
 
     val inputLayer = new InputLayer(inputsSource)
     val hiddenLayer1 = new HiddenLayer(theta1)
@@ -70,7 +70,10 @@ object GradientChecker extends StrictLogging {
     logger.debug("-----t3------")
     logger.debug("Unrolled theta3:\r\n{}", Nd4j.hstack(gradT3.reshape(gradT3.length(), 1), gradT3Approx.reshape(gradT3.length(), 1)))
 
-
+    Seq((diffT1, diffT2Avg),
+      (diffT2, diffT2Avg),
+      (diffT2, diffT2Avg)
+    )
   }
 
 }
