@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
   "org.nd4j" % "nd4j-native-platform" % nd4jVersion,
   "org.nd4j" % "nd4s_2.11" % nd4jVersion,
 
+  "org.jfree" % "jfreechart" % "1.5.+",
 
   "com.typesafe.scala-logging" %% "scala-logging" % "3.7.+",
   "ch.qos.logback" % "logback-classic" % "1.2.+",
