@@ -15,7 +15,9 @@ object GradientDescender extends StrictLogging {
       val (yCalc, gradients) = NNRunner.runWithData(x, y, inputLayer, lambda)
       val cost = CostFunction.cost(yCalc, y, inputLayer.getNNThetas, lambda)
       logger.info("Iteration[{}] cost:[{}]", i, cost)
-      gradients.foreach(_ *= learnRate)
+      if (learnRate != 1) {
+        gradients.foreach(_ *= learnRate)
+      }
       inputLayer.updateWithGradients(gradients)
     }
 
