@@ -11,7 +11,7 @@ import org.nd4s.Implicits._
   */
 object GradientChecker extends StrictLogging {
 
-  def check(): Seq[(Double, Double)] = {
+  def check(lambda: Double = 0): Seq[(Double, Double)] = {
     val inputsSource = 3
     val hiddenLayer1Size = 4
     val hiddenLayer2Size = 5
@@ -36,11 +36,11 @@ object GradientChecker extends StrictLogging {
     hiddenLayer1.connectTo(hiddenLayer2)
     hiddenLayer2.connectTo(outputLayer)
 
-    val costFunction = () => CostFunction.cost(NNRunner.runWithData(x, inputLayer), y)
+    val costFunction = () => CostFunction.cost(NNRunner.runWithData(x, inputLayer), y, inputLayer.getNNThetas, lambda)
     val gradientsApprox = NumericalGradient
       .approximateGradients(costFunction, inputLayer, Seq(theta1.shape(), theta2.shape(), theta3.shape()))
 
-    val (_, gradients) = NNRunner.runWithData(x, y, inputLayer)
+    val (_, gradients) = NNRunner.runWithData(x, y, inputLayer, lambda)
 
     val gradT1 = gradients(0)
     val gradT1Approx = gradientsApprox(0)
