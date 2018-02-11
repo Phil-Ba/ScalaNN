@@ -40,6 +40,7 @@ object NumericalGradient extends StrictLogging {
         inputLayer.updateWithGradients(thetas)
         logger.debug("c1[{}] c2[{}]", c1, c2)
 
+        theta(row, col) = 0
         gradients(row, col) = (c1 - c2) / epsTimesTwo
         count += 1
         if (count % tenPercent == 0) {
