@@ -24,17 +24,19 @@ object NNRunner {
 
     val yCalc = Nd4j.zerosLike(y)
     val m = y.columns()
+    val lambdaM = lambda / m
+    val avg = 1D / m
+
     val gradients = for {
       i <- 0 until m
       xCur = x(i, ->)
       yCur = y(->, i)
     } yield {
-      val (result, gradients, _) = inputLayer.activateWithGradients(xCur, yCur, lambda)
+      val (result, gradients, _) = inputLayer.activateWithGradients(xCur, yCur, lambdaM)
       yCalc(->, i) = result
       gradients
     }
 
-    val avg = 1D / m
     val totalGradients = gradients.reduce((gradients1, gradients2) => {
       val sumOfLayerGradients = gradients1.zip(gradients2)
         .map(layerGradients => {
