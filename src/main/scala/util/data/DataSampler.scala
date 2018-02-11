@@ -13,8 +13,8 @@ import scala.util.Random
 object DataSampler {
 
   def sample(x: INDArray, y: INDArray, amount: Int = 100): (INDArray, INDArray) = {
-    val xSample = Nd4j.zeros(amount, x.columns())
-    val ySample = Nd4j.zeros(y.rows(), amount)
+    val xSample = Nd4j.createUninitialized(amount, x.columns())
+    val ySample = Nd4j.createUninitialized(y.rows(), amount)
     Random.shuffle((0 until x.rows()).toList)
       .take(amount)
       .zipWithIndex
@@ -41,22 +41,22 @@ object DataSampler {
     val trainingSet: INDArray = Nd4j.createUninitialized(trainRows, features)
     val trainingResultSet = Nd4j.createUninitialized(labels, trainRows)
     trainIdx.zipWithIndex.foreach { idx =>
-      trainingSet(1, ->) = x(idx._1, ->)
-      trainingResultSet(->, idx._2) = y(->, idx._2)
+      trainingSet(idx._2, ->) = x(idx._1, ->)
+      trainingResultSet(->, idx._2) = y(->, idx._1)
     }
 
     val cvSet: INDArray = Nd4j.createUninitialized(cvRows, features)
     val cvResultSet = Nd4j.createUninitialized(labels, cvRows)
     cvIdx.zipWithIndex.foreach { idx =>
-      cvSet(1, ->) = x(idx._1, ->)
-      cvResultSet(->, idx._2) = y(->, idx._2)
+      cvSet(idx._2, ->) = x(idx._1, ->)
+      cvResultSet(->, idx._2) = y(->, idx._1)
     }
 
     val testSet: INDArray = Nd4j.createUninitialized(testIdx.length, features)
     val testResultSet = Nd4j.createUninitialized(labels, testIdx.length)
     testIdx.zipWithIndex.foreach { idx =>
-      testSet(1, ->) = x(idx._1, ->)
-      testResultSet(->, idx._2) = y(->, idx._2)
+      testSet(idx._2, ->) = x(idx._1, ->)
+      testResultSet(->, idx._2) = y(->, idx._1)
     }
 
     //    val trainingSet = xShuffled(0 until trainRows, ->)
