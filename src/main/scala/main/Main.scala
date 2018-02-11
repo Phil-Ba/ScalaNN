@@ -3,7 +3,8 @@ package main
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4s.Implicits._
-import util.{GradientChecker, MatlabImporter}
+import util.GradientChecker
+import util.data.MatlabImporter
 
 import scala.util.Random
 

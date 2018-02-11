@@ -1,4 +1,4 @@
-package util
+package util.data
 
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4s.Implicits.doubleArray2INDArray

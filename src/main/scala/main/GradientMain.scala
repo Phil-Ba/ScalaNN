@@ -3,7 +3,8 @@ package main
 import model.nn.{HiddenLayer, InputLayer, OutputLayer}
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4s.Implicits._
-import util.{GradientDescender, MatlabImporter, RandomInitializier}
+import util.data.{DataSampler, LabelConverter, MatlabImporter}
+import util.{GradientDescender, RandomInitializier}
 
 /**
   *
@@ -14,14 +15,15 @@ object GradientMain {
     val map = MatlabImporter("src/main/resources/test.mat")
     val x = map("X")
     val y = map("y")
-    val yMappedCols = Nd4j.zeros(1, y.rows() * 10)
+    val yMappedCols = Nd4j.zeros(10, y.rows())
     for (i <- 0 until y.rows) {
       val yVal: Int = y(i, 0).intValue()
-      val updIdx = (yVal % 10) + 10 * i
-      yMappedCols(0, updIdx) = 1
+      //      val mappedY = LabelConverter.labelToVector(yVal, 10)
+      LabelConverter.labelToVector(yMappedCols(->, i), yVal, 10)
+      //      yMappedCols(->, i) = mappedY
     }
 
-    val yReshaped = yMappedCols.reshape('f', 10, y.rows())
+    //    val yReshaped = yMappedCols.reshape('f', 10, y.rows())
 
     val inputsSource = x.columns()
     val hiddenLayer1Size = 15
@@ -40,7 +42,16 @@ object GradientMain {
     hiddenLayer1.connectTo(hiddenLayer2)
     hiddenLayer2.connectTo(outputLayer)
 
-    GradientDescender.minimize(x, yReshaped, inputLayer, 2, 2.5)
+    val dataset = DataSampler.createSampleSet(x, yMappedCols)
+    GradientDescender.minimize(dataset.trainingSet, dataset.trainingResultSet, inputLayer, 100, 2, 2.5)
+
+    val (cvSet, cvResultSet) = DataSampler.sample(dataset.cvSet, dataset.cvResultSet, 10)
+    for (i <- 0 until cvSet.rows()) {
+      val result = inputLayer.activate(cvSet(i, ->))
+      val y = cvResultSet(->, i)
+
+      println(s"Expected ${LabelConverter.vectorToLabel(y)} and got ${LabelConverter.vectorToLabel(result)}")
+    }
   }
 
 }
