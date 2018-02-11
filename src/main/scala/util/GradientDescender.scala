@@ -10,8 +10,8 @@ import org.nd4s.Implicits._
   */
 object GradientDescender extends StrictLogging {
 
-  def minimize(x: INDArray, y: INDArray, inputLayer: InputLayer, lambda: Double = 0, learnRate: Double = 1D) = {
-    for (i <- 1 to 30) {
+  def minimize(x: INDArray, y: INDArray, inputLayer: InputLayer, iterations: Int = 100, lambda: Double = 0, learnRate: Double = 1D) = {
+    for (i <- 1 to iterations) {
       val (yCalc, gradients) = NNRunner.runWithData(x, y, inputLayer, lambda)
       val cost = CostFunction.cost(yCalc, y, inputLayer.getNNThetas, lambda)
       logger.info("Iteration[{}] cost:[{}]", i, cost)
