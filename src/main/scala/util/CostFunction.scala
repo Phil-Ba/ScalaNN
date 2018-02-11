@@ -19,6 +19,20 @@ object CostFunction extends StrictLogging {
     cost(fun(), y)
   }
 
+  def cost(calcY: INDArray, y: INDArray, thetas: Seq[INDArray], lambda: Double = 0): Double = {
+    val costJ = cost(calcY, y)
+    if (lambda == 0) {
+      costJ
+    } else {
+      val m = y.columns()
+      val penaltyFactor = lambda / (2 * m)
+      val thetaCost = thetas
+        .map { theta => Transforms.pow(theta(->, 2 until theta.columns()), 2).sumNumber().doubleValue() }
+        .sum * penaltyFactor
+      costJ + thetaCost
+    }
+  }
+
   //  J += (1/m) * (-yVec'*log(a3) - (1-yVec)'*log(1-a3));
   def cost(calcY: INDArray, y: INDArray): Double = {
     require(calcY.shape() sameElements y.shape(), s"calcy(${calcY.shape().mkString("x")}) should be same as y(${y.shape().mkString("x")})")

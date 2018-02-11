@@ -80,14 +80,23 @@ object Layers {
 
   trait SourceLayer extends ConnectableLayer {
 
+    private lazy val layers = collectLayers(nextLayer, Nil)
+
     def updateWithGradients(gradients: Seq[Gradients]): Unit = {
-      gradients.foldLeft(nextLayer) { (layerOpt, gradient) =>
-        layerOpt.foreach(_.thetas -= gradient)
-        layerOpt.flatMap(layer => layer match {
-          case cl: ConnectableLayer => cl.nextLayer
-          case _ => None
-        })
+      gradients.zip(getNNThetas).foreach { gt =>
+        gt._2 -= gt._1
       }
+    }
+
+    private def collectLayers(layer: Option[Layer], seq: Seq[Layer]): Seq[Layer] = {
+      layer.fold(seq) {
+        case cl: ConnectableLayer => collectLayers(cl.nextLayer, seq :+ cl)
+        case _ => seq
+      }
+    }
+
+    def getNNThetas: Seq[INDArray] = {
+      layers.map(_.thetas)
     }
 
     override protected def validateXInput(x: Thetas): Unit = {
@@ -103,12 +112,28 @@ object Layers {
       nextLayer.get.activate(x)
     }
 
-    override def activateWithGradients(x: INDArray,
-                                       y: INDArray): (Result, Seq[Gradients], Delta) = {
+    override def activateWithGradients(x: INDArray, y: INDArray): (Result, Seq[Gradients], Delta) = {
       require(nextLayer.isDefined)
       validateXInput(x)
 
       nextLayer.get.activateWithGradients(x, y)
+    }
+
+    def activateWithGradients(x: INDArray, y: INDArray, lambda: Double): (Result, Seq[Gradients], Delta) = {
+      val (result, gradients, delta) = activateWithGradients(x, y)
+      if (lambda == 0) {
+        (result, gradients, delta)
+      }
+      else {
+        val penalizedGradients = gradients.zip(getNNThetas)
+          .map { gt =>
+            val gradientsExclBias = gt._1(->, 1 until gt._1.columns())
+            val thetasExclBias = gt._2(->, 1 until gt._2.columns())
+            val penalizedGradients = gradientsExclBias + (thetasExclBias * lambda)
+            Nd4j.hstack(gt._1(->, 0), penalizedGradients)
+          }
+        (result, penalizedGradients, delta)
+      }
     }
 
   }

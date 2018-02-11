@@ -24,13 +24,13 @@ object GradientMain {
     val yReshaped = yMappedCols.reshape('f', 10, y.rows())
 
     val inputsSource = x.columns()
-    val hiddenLayer1Size = 4
-    val hiddenLayer2Size = 5
+    val hiddenLayer1Size = 15
+    val hiddenLayer2Size = 15
     val labels = 10
 
-    val theta1 = RandomInitializier.initialize(hiddenLayer1Size, inputsSource, 0.5)
-    val theta2 = RandomInitializier.initialize(hiddenLayer2Size, hiddenLayer1Size, 0.5)
-    val theta3 = RandomInitializier.initialize(labels, hiddenLayer2Size, 0.5)
+    val theta1 = RandomInitializier.initialize(hiddenLayer1Size, inputsSource, 1)
+    val theta2 = RandomInitializier.initialize(hiddenLayer2Size, hiddenLayer1Size, 1)
+    val theta3 = RandomInitializier.initialize(labels, hiddenLayer2Size, 1)
 
     val inputLayer = new InputLayer(inputsSource)
     val hiddenLayer1 = new HiddenLayer(theta1)
@@ -40,7 +40,7 @@ object GradientMain {
     hiddenLayer1.connectTo(hiddenLayer2)
     hiddenLayer2.connectTo(outputLayer)
 
-    GradientDescender.minimize(x, yReshaped, inputLayer)
+    GradientDescender.minimize(x, yReshaped, inputLayer, 0.1, 2.5)
   }
 
 }
