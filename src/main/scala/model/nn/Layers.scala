@@ -80,7 +80,7 @@ object Layers {
 
   trait SourceLayer extends ConnectableLayer {
 
-    private lazy val layers = collectLayers(nextLayer, Nil)
+    private lazy val layers = collectLayers(nextLayer)
 
     def updateWithGradients(gradients: Seq[Gradients]): Unit = {
       gradients.zip(getNNThetas).foreach { gt =>
@@ -88,10 +88,10 @@ object Layers {
       }
     }
 
-    private def collectLayers(layer: Option[Layer], seq: Seq[Layer]): Seq[Layer] = {
-      layer.fold(seq) {
-        case cl: ConnectableLayer => collectLayers(cl.nextLayer, seq :+ cl)
-        case _ => seq
+    private def collectLayers(layer: Option[Layer]): Seq[Layer] = {
+      layer.fold(Seq.empty[Layer]) {
+        case cl: ConnectableLayer => cl +: collectLayers(cl.nextLayer)
+        case l => Seq(l)
       }
     }
 
