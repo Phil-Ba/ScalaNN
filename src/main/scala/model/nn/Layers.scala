@@ -81,12 +81,12 @@ object Layers {
   trait SourceLayer extends ConnectableLayer {
 
     def updateWithGradients(gradients: Seq[Gradients]): Unit = {
-      gradients.foldLeft(nextLayer) { (layer, gradient) =>
-        layer.foreach(_.thetas -= gradient)
-        layer match {
+      gradients.foldLeft(nextLayer) { (layerOpt, gradient) =>
+        layerOpt.foreach(_.thetas -= gradient)
+        layerOpt.flatMap(layer => layer match {
           case cl: ConnectableLayer => cl.nextLayer
           case _ => None
-        }
+        })
       }
     }
 
