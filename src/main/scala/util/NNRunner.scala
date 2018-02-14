@@ -32,7 +32,7 @@ object NNRunner {
       xCur = x(i, ->)
       yCur = y(->, i)
     } yield {
-      val (result, gradients, _) = inputLayer.activateWithGradients(xCur, yCur, lambdaM)
+      val (result, gradients, _) = inputLayer.activateWithGradients(xCur, yCur, 0)
       yCalc(->, i) = result
       gradients
     }
@@ -45,6 +45,11 @@ object NNRunner {
         })
       sumOfLayerGradients
     }).map(layerGradients => layerGradients * avg)
+      .zip(inputLayer.getNNThetas)
+      .map { gt =>
+        val thetasExclBias = gt._2(->, 1 until gt._2.columns())
+        gt._1(->, 1 until gt._1.columns()) = gt._1(->, 1 until gt._1.columns()) + (thetasExclBias * lambdaM)
+      }
 
     (yCalc, totalGradients)
   }

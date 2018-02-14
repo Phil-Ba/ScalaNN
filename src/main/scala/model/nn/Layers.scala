@@ -25,7 +25,10 @@ object Layers {
     }
 
     protected def doActivation(x: INDArray): (Activation, Z) = {
-      val xPlusBias = Nd4j.hstack(Nd4j.ones(x.rows, 1), x)
+      //      val xPlusBias = Nd4j.hstack(Nd4j.ones(x.rows, 1), x)
+      val xPlusBias = Nd4j.ones(x.rows(), x.columns() + 1)
+      xPlusBias(->, 1 until xPlusBias.columns()) = x
+      //      hstack(Nd4j.ones(x.rows, 1), x)
       //units X inputs   inputs X samples
       val z = thetas dot xPlusBias.T
       val a = Transforms.sigmoid(z)
@@ -127,10 +130,21 @@ object Layers {
       else {
         val penalizedGradients = gradients.zip(getNNThetas)
           .map { gt =>
-            val gradientsExclBias = gt._1(->, 1 until gt._1.columns())
             val thetasExclBias = gt._2(->, 1 until gt._2.columns())
-            val penalizedGradients = gradientsExclBias + (thetasExclBias * lambda)
-            Nd4j.hstack(gt._1(->, 0), penalizedGradients)
+            gt._1(->, 1 until gt._1.columns()) += (thetasExclBias * lambda)
+            //
+            //            val thetasExclBias = gt._2(->, 1 until gt._2.columns())
+            //            gt._1(->, 1 until gt._1.columns()) = gt._1(->, 1 until gt._1.columns()) + (thetasExclBias * lambda)
+
+            //                        val thetasExclBias = gt._2(->, 1 until gt._2.columns())
+            //            val gradientsExclBias = gt._1(->, 1 until gt._1.columns())
+            //            val penalizedGradients = gradientsExclBias + (thetasExclBias * lambda)
+            //            Nd4j.hstack(gt._1(->, 0), penalizedGradients)
+
+            //            gt._1(->, 1 until gt._1.columns()) = penalizedGradients
+            //            gt._1(->, 1 until gt._1.columns()) += penalizedGradients
+            //
+
           }
         (result, penalizedGradients, delta)
       }
