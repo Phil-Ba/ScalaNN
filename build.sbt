@@ -6,6 +6,8 @@ scalaVersion := "2.11.12"
 
 resolvers += Resolver.mavenLocal
 
+classpathTypes += "maven-plugin"
+
 val breezeVersion = "0.13.+"
 val nd4jVersion = "0.9.+"
 val tinyLogVersion = "1.3"
@@ -16,7 +18,11 @@ libraryDependencies ++= Seq(
   //  "org.scalanlp" %% "breeze-viz" % breezeVersion,
 
   "org.nd4j" % "nd4j-native-platform" % nd4jVersion,
+  //  "org.nd4j" % "nd4j-cuda-7.5-platform" % nd4jVersion,
+  //  "org.nd4j" % "nd4j-native-platform" % nd4jVersion  classifier "" classifier "windows-x86_64",
   "org.nd4j" % "nd4s_2.11" % nd4jVersion,
+  //    "org.nd4j" % "nd4j-cuda-7.5" % nd4jVersion classifier "" classifier "windows-x86_64",
+  //    "org.nd4j" % "nd4j-native" % nd4jVersion classifier "" classifier "windows-x86_64",
 
   "org.jfree" % "jfreechart" % "1.5.+",
 
