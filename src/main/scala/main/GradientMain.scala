@@ -26,8 +26,8 @@ object GradientMain {
     //    val yReshaped = yMappedCols.reshape('f', 10, y.rows())
 
     val inputsSource = x.columns()
-    val hiddenLayer1Size = 15
-    val hiddenLayer2Size = 15
+    val hiddenLayer1Size = 30
+    val hiddenLayer2Size = 30
     val labels = 10
 
     val theta1 = RandomInitializier.initialize(hiddenLayer1Size, inputsSource, 1)
@@ -43,15 +43,25 @@ object GradientMain {
     hiddenLayer2.connectTo(outputLayer)
 
     val dataset = DataSampler.createSampleSet(x, yMappedCols)
-    GradientDescender.minimize(dataset.trainingSet, dataset.trainingResultSet, inputLayer, 100, 2, 2.5)
+    GradientDescender.minimize(dataset.trainingSet, dataset.trainingResultSet, inputLayer, 10, 2, 3)
 
-    val (cvSet, cvResultSet) = DataSampler.sample(dataset.cvSet, dataset.cvResultSet, 10)
+    //    val (cvSet, cvResultSet) = DataSampler.sample(dataset.cvSet, dataset.cvResultSet, 10)
+    val cvSet = dataset.cvSet
+    val cvResultSet = dataset.cvResultSet
+    var falseCount = 0
     for (i <- 0 until cvSet.rows()) {
       val result = inputLayer.activate(cvSet(i, ->))
       val y = cvResultSet(->, i)
-
-      println(s"Expected ${LabelConverter.vectorToLabel(y)} and got ${LabelConverter.vectorToLabel(result)}")
+      val yLabel = LabelConverter.vectorToLabel(y)
+      val predictLabel = LabelConverter.vectorToLabel(result)
+      if (yLabel != predictLabel) {
+        println(s"Expected ${yLabel} and got ${predictLabel}")
+        falseCount += 1
+      }
     }
+    println(s"Total predictions: ${cvSet.rows()}")
+    println(s"Incorrect predictions: ${falseCount}")
+    println(s"Correct predictions%: ${100 - (falseCount / cvSet.rows().toDouble) * 100D}")
   }
 
 }
