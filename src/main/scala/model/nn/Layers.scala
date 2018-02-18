@@ -5,6 +5,7 @@ import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4s.Implicits._
+import util.ImlpicitUtils.DebugINDArray
 
 object Layers {
 
@@ -64,13 +65,13 @@ object Layers {
       val (activation, z) = doActivation(x)
       val (result, gradients, prevDelta) = nextLayer.get.activateWithGradients(activation.T, y)
       val nextThetas = nextLayer.get.thetas
-      logger.debug("theta[{}]", thetas.shapeInfoToString())
-      logger.debug("prevDelta[{}]", prevDelta.shapeInfoToString())
-      logger.debug("z[{}]", z.shapeInfoToString())
-      logger.debug("nextThetas[{}]", nextLayer.get.thetas.shapeInfoToString())
+      logger.debug("theta[{}]", thetas.printShape)
+      logger.debug("prevDelta[{}]", prevDelta.printShape)
+      logger.debug("z[{}]", z.printShape)
+      logger.debug("nextThetas[{}]", nextLayer.get.thetas.printShape)
       //26x10 10x1 25x1
       val curDelta = (nextThetas(->, 1 -> nextThetas.columns()).T dot prevDelta) * Transforms.sigmoidDerivative(z, true)
-      val curGradient = curDelta dot Nd4j.hstack(Nd4j.ones(1, 1), x)
+      val curGradient = curDelta dot Nd4j.hstack(Nd4j.ones(x.rows(), 1), x)
       (result, curGradient +: gradients, curDelta)
     }
 
@@ -170,12 +171,12 @@ object Layers {
       val (activation, _) = doActivation(x)
 
       val delta = activation - y
-      logger.debug("X[{}]", x)
-      logger.debug("Y[{}]", y)
-      logger.debug("Activation[{}]", activation)
-      logger.debug("Delta[{}]", delta)
+      logger.debug("X[{}]", x.printShape)
+      logger.debug("Y[{}]", y.printShape)
+      logger.debug("Activation[{}]", activation.printShape)
+      logger.debug("Delta[{}]", delta.printShape)
       //      10x1 1x25
-      val curGradient = delta dot Nd4j.hstack(Nd4j.ones(1, 1), x)
+      val curGradient = delta dot Nd4j.hstack(Nd4j.ones(x.rows(), 1), x)
 
       (activation, Seq(curGradient), delta)
     }

@@ -26,32 +26,14 @@ object NNRunner {
     val m = y.columns()
     val lambdaM = lambda / m
     val avg = 1D / m
-
-    val gradients = for {
-      i <- 0 until m
-      xCur = x(i, ->)
-      yCur = y(->, i)
-    } yield {
-      val (result, gradients, _) = inputLayer.activateWithGradients(xCur, yCur, 0)
-      yCalc(->, i) = result
-      gradients
-    }
-
-    val totalGradients = gradients.reduce((gradients1, gradients2) => {
-      val sumOfLayerGradients = gradients1.zip(gradients2)
-        .map(layerGradients => {
-          val (layerGradients1, layerGradients2) = layerGradients
-          layerGradients1 + layerGradients2
-        })
-      sumOfLayerGradients
-    }).map(layerGradients => layerGradients * avg)
+    val (result, gradients, _) = inputLayer.activateWithGradients(x, y, 0)
+    val totalGradients = gradients.map(layerGradients => layerGradients * avg)
       .zip(inputLayer.getNNThetas)
       .map { gt =>
         val thetasExclBias = gt._2(->, 1 until gt._2.columns())
         gt._1(->, 1 until gt._1.columns()) = gt._1(->, 1 until gt._1.columns()) + (thetasExclBias * lambdaM)
       }
-
-    (yCalc, totalGradients)
+    (result, totalGradients)
   }
 
   /**
@@ -62,13 +44,7 @@ object NNRunner {
     * @return calculated results
     */
   def runWithData(x: INDArray, inputLayer: InputLayer): (INDArray) = {
-    val yCalc = for {
-      i <- 0 until x.rows()
-      xCur = x(i, ->)
-    } yield {
-      inputLayer.activate(xCur)
-    }
-    Nd4j.hstack(yCalc: _*)
+    inputLayer.activate(x)
   }
 
 }
