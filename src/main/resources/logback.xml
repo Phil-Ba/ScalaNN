@@ -9,7 +9,7 @@
     </appender>
 
     <logger name="util" level="debug"/>
-    <logger name="main" level="debug"/>
+    <logger name="main" level="info"/>
     <logger name="model.nn" level="info"/>
     <logger name="model.nn.OutputLayer" level="info"/>
     <logger name="model.nn.HiddenLayer" level="info"/>
