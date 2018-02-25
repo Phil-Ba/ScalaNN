@@ -22,7 +22,7 @@ object LabelConverter {
   }
 
   def vectorToLabel(vector: INDArray): Int = {
-    val sorted = Nd4j.sortWithIndices(vector, 0, false)
+    val sorted = Nd4j.sortWithIndices(vector.dup(), 0, false)
     val label = sorted(0)(0)
     label.toInt
   }
