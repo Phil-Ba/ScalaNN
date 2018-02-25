@@ -27,7 +27,7 @@ object CostFunction extends StrictLogging {
       val m = y.columns()
       val penaltyFactor = lambda / (2 * m)
       val thetaCost = thetas
-        .map { theta => Transforms.pow(theta(->, 2 until theta.columns()), 2).sumNumber().doubleValue() }
+        .map { theta => Transforms.pow(theta(->, 1 until theta.columns()), 2).sumNumber().doubleValue() }
         .sum * penaltyFactor
       costJ + thetaCost
     }
