@@ -1,13 +1,17 @@
 package main
 
+import javax.swing.JFrame
+
 import com.typesafe.scalalogging.StrictLogging
+import model.data.SampleSet
 import model.nn.{HiddenLayer, InputLayer, OutputLayer}
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4s.Implicits._
 import util.RandomInitializier
 import util.data.{DataSampler, LabelConverter, MatlabImporter}
-import util.optimizers.GradientDescendOptimizer
+import util.optimizers.{AdaDeltaOptimizer, GradientDescendOptimizer, NesterovAcceleratedOptimizer}
+import util.plot.PlotCost
 
 /**
   *
@@ -29,8 +33,8 @@ object GradientMain extends StrictLogging {
     //    val yReshaped = yMappedCols.reshape('f', 10, y.rows())
 
     val inputsSource = x.columns()
-    val hiddenLayer1Size = 25
-    val hiddenLayer2Size = 25
+    val hiddenLayer1Size = 35
+    val hiddenLayer2Size = 35
     val labels = 10
 
     val theta1 = RandomInitializier.initialize(hiddenLayer1Size, inputsSource, 1)
@@ -47,32 +51,47 @@ object GradientMain extends StrictLogging {
     hiddenLayer1.connectTo(hiddenLayer2)
     hiddenLayer2.connectTo(outputLayer)
 
-    val dataset = DataSampler.createSampleSet(x, yMappedCols)
-    GradientDescendOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, inputLayer, 250, 4, 2)
+    val gradDescNN = inputLayer.copyNetwork
+    val nesterovNN = inputLayer.copyNetwork
+    val adaDeltaNN = inputLayer.copyNetwork
 
-    //    val (cvSet, cvResultSet) = DataSampler.sample(dataset.cvSet, dataset.cvResultSet, 10)
-    val tSet = dataset.trainingSet
-    val tResultSet = dataset.trainingResultSet
-    var falseCount = 0
-    for (i <- 0 until tSet.rows()) {
-      val result = inputLayer.activate(tSet(i, ->))
-      val y = tResultSet(->, i)
-      val yLabel = LabelConverter.vectorToLabel(y)
-      val predictLabel = LabelConverter.vectorToLabel(result)
-      if (yLabel != predictLabel) {
-        debugFalsePrediction(result, y)
-        //        println(s"Expected ${yLabel} and got ${predictLabel}")
-        falseCount += 1
+    val dataset = DataSampler.createSampleSet(x, yMappedCols)
+    val gradDescCosts = GradientDescendOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, gradDescNN, 250, 4, 2)
+    val nesterovCosts = NesterovAcceleratedOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, nesterovNN, 250, 4, 2)
+    val adaDeltaCosts = AdaDeltaOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, adaDeltaNN, 250, 4, 2)
+
+    Seq((gradDescNN, "Gradient Descend"), (nesterovNN, "Nesterov"), (adaDeltaNN, "AdaDelta")).foreach { case (nn, name) =>
+      logger.info("Testing {} optimization:", name)
+      runOnTrainingSet(nn, dataset)
+      runOnCvSet(nn, dataset)
+    }
+
+    import javax.swing.{SwingUtilities, WindowConstants}
+
+    import org.jfree.chart.ChartPanel
+    val runnable: Runnable = new Runnable {
+      override def run(): Unit = {
+        val panel = new ChartPanel(PlotCost.plot(Seq(
+          ("Gradient Descent", gradDescCosts),
+          ("Nesterov Descent", nesterovCosts),
+          ("AdaDelta", adaDeltaCosts)
+        )))
+        val frame = new JFrame()
+        frame.setSize(1600, 1080)
+        frame.setLocationRelativeTo(null)
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+        frame.setContentPane(panel)
+        frame.setVisible(true)
       }
     }
-    println(s"Total predictions: ${tSet.rows()}")
-    println(s"Incorrect predictions: ${falseCount}")
-    println(s"Correct predictions%: ${100 - (falseCount / tSet.rows().toDouble) * 100D}")
-    println("---------------------\r\n")
+    SwingUtilities.invokeLater(runnable)
+  }
 
+
+  private def runOnCvSet(inputLayer: InputLayer, dataset: SampleSet) = {
     val cvSet = dataset.cvSet
     val cvResultSet = dataset.cvResultSet
-    falseCount = 0
+    var falseCount = 0
     for (i <- 0 until cvSet.rows()) {
       val result = inputLayer.activate(cvSet(i, ->))
       val y = cvResultSet(->, i)
@@ -83,9 +102,29 @@ object GradientMain extends StrictLogging {
         falseCount += 1
       }
     }
-    println(s"CV Total predictions: ${cvSet.rows()}")
-    println(s"CV Incorrect predictions: ${falseCount}")
-    println(s"CV Correct predictions%: ${100 - (falseCount / cvSet.rows().toDouble) * 100D}")
+    logger.info(s"CV Total predictions: ${cvSet.rows()}")
+    logger.info(s"CV Incorrect predictions: ${falseCount}")
+    logger.info(s"CV Correct predictions%: ${100 - (falseCount / cvSet.rows().toDouble) * 100D}")
+    logger.info("---------------------\r\n\r\n")
+  }
+
+  private def runOnTrainingSet(inputLayer: InputLayer, dataset: SampleSet) = {
+    val tSet = dataset.trainingSet
+    val tResultSet = dataset.trainingResultSet
+    var falseCount = 0
+    for (i <- 0 until tSet.rows()) {
+      val result = inputLayer.activate(tSet(i, ->))
+      val y = tResultSet(->, i)
+      val yLabel = LabelConverter.vectorToLabel(y)
+      val predictLabel = LabelConverter.vectorToLabel(result)
+      if (yLabel != predictLabel) {
+        debugFalsePrediction(result, y)
+        falseCount += 1
+      }
+    }
+    logger.info(s"Train Total predictions: ${tSet.rows()}")
+    logger.info(s"Train Incorrect predictions: ${falseCount}")
+    logger.info(s"Train Correct predictions%: ${100 - (falseCount / tSet.rows().toDouble) * 100D}")
   }
 
   def debugFalsePrediction(prediction: INDArray, y: INDArray): Unit = {
