@@ -1,15 +1,18 @@
 package main
 
+import com.typesafe.scalalogging.StrictLogging
 import model.nn.{HiddenLayer, InputLayer, OutputLayer}
+import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4s.Implicits._
+import util.RandomInitializier
 import util.data.{DataSampler, LabelConverter, MatlabImporter}
-import util.{GradientDescender, RandomInitializier}
+import util.optimizers.GradientDescendOptimizer
 
 /**
   *
   */
-object GradientMain {
+object GradientMain extends StrictLogging {
 
   def main(args: Array[String]): Unit = {
     val map = MatlabImporter("src/main/resources/test.mat")
@@ -45,7 +48,7 @@ object GradientMain {
     hiddenLayer2.connectTo(outputLayer)
 
     val dataset = DataSampler.createSampleSet(x, yMappedCols)
-    GradientDescender.minimize(dataset.trainingSet, dataset.trainingResultSet, inputLayer, 200, 4, 2)
+    GradientDescendOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, inputLayer, 250, 4, 2)
 
     //    val (cvSet, cvResultSet) = DataSampler.sample(dataset.cvSet, dataset.cvResultSet, 10)
     val tSet = dataset.trainingSet
@@ -57,6 +60,7 @@ object GradientMain {
       val yLabel = LabelConverter.vectorToLabel(y)
       val predictLabel = LabelConverter.vectorToLabel(result)
       if (yLabel != predictLabel) {
+        debugFalsePrediction(result, y)
         //        println(s"Expected ${yLabel} and got ${predictLabel}")
         falseCount += 1
       }
@@ -75,7 +79,7 @@ object GradientMain {
       val yLabel = LabelConverter.vectorToLabel(y)
       val predictLabel = LabelConverter.vectorToLabel(result)
       if (yLabel != predictLabel) {
-        //        println(s"Expected ${yLabel} and got ${predictLabel}")
+        debugFalsePrediction(result, y)
         falseCount += 1
       }
     }
@@ -84,4 +88,8 @@ object GradientMain {
     println(s"CV Correct predictions%: ${100 - (falseCount / cvSet.rows().toDouble) * 100D}")
   }
 
+  def debugFalsePrediction(prediction: INDArray, y: INDArray): Unit = {
+    logger.debug("\r\nPredicted[{}] as [{}]\r\nRealValue[{}] is [{}]", prediction, LabelConverter.vectorToLabel(prediction),
+      y, LabelConverter.vectorToLabel(y))
+  }
 }
