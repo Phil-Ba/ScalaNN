@@ -12,7 +12,8 @@ import util.{CostFunction, NNRunner}
 object GradientDescendOptimizer extends StrictLogging {
 
   def minimize(x: INDArray, y: INDArray, inputLayer: InputLayer, iterations: Int = 100, lambda: Double = 0, learnRate: Double = 1D) = {
-    for (i <- 1 to iterations) {
+
+    val costs = (1 to iterations).map { i =>
       val (yCalc, gradients) = NNRunner.runWithData(x, y, inputLayer, lambda)
       val cost = CostFunction.cost(yCalc, y, inputLayer.getNNThetas, lambda)
       logger.info("Iteration[{}] cost:[{}]", i, cost)
@@ -20,7 +21,9 @@ object GradientDescendOptimizer extends StrictLogging {
         gradients.foreach(_ *= learnRate)
       }
       inputLayer.updateWithGradients(gradients)
+      cost
     }
+    costs
 
   }
 

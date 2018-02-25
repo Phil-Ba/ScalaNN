@@ -16,8 +16,7 @@ object NesterovAcceleratedOptimizer extends StrictLogging {
     val gamma = 0.9
     var v = inputLayer.getNNThetas
       .map(Nd4j.zerosLike(_))
-    for (i <- 1 to iterations) {
-
+    val costs = (1 to iterations).map { i =>
       val (yCalc, gradients) = NNRunner.runWithData(x, y, inputLayer, lambda)
       val cost = CostFunction.cost(yCalc, y, inputLayer.getNNThetas, lambda)
       logger.info("Iteration[{}] cost:[{}]", i, cost)
@@ -36,8 +35,9 @@ object NesterovAcceleratedOptimizer extends StrictLogging {
         }
       inputLayer.updateWithGradients(update)
       v = vtNew
+      cost
     }
-
+    costs
   }
 
 }

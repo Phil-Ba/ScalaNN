@@ -23,7 +23,7 @@ object AdaDeltaOptimizer extends StrictLogging {
       Nd4j.onesLike(_)
     }
 
-    for (i <- 1 to iterations) {
+    val costs = (1 to iterations).map { i =>
       val (yCalc, gradients) = NNRunner.runWithData(x, y, inputLayer, lambda)
       //E[g^2]_t = gamma * E[g^2]_{t−1} + (1-gamma)*g^2_t
       msg.zip(gradients).foreach { msgG =>
@@ -64,8 +64,9 @@ object AdaDeltaOptimizer extends StrictLogging {
       val cost = CostFunction.cost(yCalc, y, inputLayer.getNNThetas, lambda)
       logger.info("Iteration[{}] cost:[{}]", i, cost)
       inputLayer.updateWithGradients(update)
+      cost
     }
-
+    costs
   }
 
 }
