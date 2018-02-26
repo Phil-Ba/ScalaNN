@@ -1,12 +1,13 @@
 package util.plot
 
+import com.typesafe.scalalogging.StrictLogging
 import org.jfree.chart.{ChartFactory, JFreeChart}
 import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
 
 /**
   *
   */
-object PlotCost {
+object PlotCost extends StrictLogging {
 
   def plot(data: Seq[(String, Seq[Double])]): JFreeChart = {
     val seriesCollection = new XYSeriesCollection
@@ -17,7 +18,10 @@ object PlotCost {
       }
       series
     }.foreach(series => seriesCollection.addSeries(series))
-    ChartFactory.createXYLineChart("Costs", "Iteration", "Cost", seriesCollection)
+
+    val chart = ChartFactory.createXYLineChart("Costs", "Iteration", "Cost", seriesCollection)
+    logger.info("Finished cost plot!")
+    chart
   }
 
 }
