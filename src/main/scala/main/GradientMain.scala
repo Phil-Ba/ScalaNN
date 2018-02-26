@@ -1,16 +1,17 @@
 package main
 
-import javax.swing.JFrame
+import javax.swing.{JFrame, SwingUtilities, WindowConstants}
 
 import com.typesafe.scalalogging.StrictLogging
 import model.data.SampleSet
 import model.nn.{HiddenLayer, InputLayer, OutputLayer}
+import org.jfree.chart.ChartPanel
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4s.Implicits._
 import util.RandomInitializier
 import util.data.{DataSampler, LabelConverter, MatlabImporter}
-import util.optimizers.{AdaDeltaOptimizer, GradientDescendOptimizer, NesterovAcceleratedOptimizer}
+import util.optimizers.{AdaDeltaOptimizer, GradientDescendOptimizer, MomentumOptimizer, NesterovAcceleratedOptimizer}
 import util.plot.PlotCost
 
 /**
@@ -52,27 +53,32 @@ object GradientMain extends StrictLogging {
     hiddenLayer2.connectTo(outputLayer)
 
     val gradDescNN = inputLayer.copyNetwork
+    val momentumNN = inputLayer.copyNetwork
     val nesterovNN = inputLayer.copyNetwork
     val adaDeltaNN = inputLayer.copyNetwork
 
     val dataset = DataSampler.createSampleSet(x, yMappedCols)
     val gradDescCosts = GradientDescendOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, gradDescNN, 250, 4, 2)
+    val momentumCosts = MomentumOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, momentumNN, 250, 4, 2)
     val nesterovCosts = NesterovAcceleratedOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, nesterovNN, 250, 4, 2)
     val adaDeltaCosts = AdaDeltaOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, adaDeltaNN, 250, 4, 2)
 
-    Seq((gradDescNN, "Gradient Descend"), (nesterovNN, "Nesterov"), (adaDeltaNN, "AdaDelta")).foreach { case (nn, name) =>
+    Seq((gradDescNN, "Gradient Descend"),
+      (momentumNN, "Momentum"),
+      (nesterovNN, "Nesterov"),
+      (adaDeltaNN, "AdaDelta"))
+      .foreach { case (nn, name) =>
       logger.info("Testing {} optimization:", name)
       runOnTrainingSet(nn, dataset)
       runOnCvSet(nn, dataset)
     }
 
-    import javax.swing.{SwingUtilities, WindowConstants}
 
-    import org.jfree.chart.ChartPanel
     val runnable: Runnable = new Runnable {
       override def run(): Unit = {
         val panel = new ChartPanel(PlotCost.plot(Seq(
           ("Gradient Descent", gradDescCosts),
+          ("Momentum Descent", momentumCosts),
           ("Nesterov Descent", nesterovCosts),
           ("AdaDelta", adaDeltaCosts)
         )))
