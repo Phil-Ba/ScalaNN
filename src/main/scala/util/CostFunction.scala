@@ -2,7 +2,6 @@ package util
 
 import com.typesafe.scalalogging.StrictLogging
 import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4s.Implicits._
 
@@ -27,7 +26,7 @@ object CostFunction extends StrictLogging {
       val m = y.columns()
       val penaltyFactor = lambda / (2 * m)
       val thetaCost = thetas
-        .map { theta => Transforms.pow(theta(->, 1 until theta.columns()), 2).sumNumber().doubleValue() }
+        .map { theta => Transforms.pow(theta(->, 1 until theta.columns()), 2, true).sumNumber().doubleValue() }
         .sum * penaltyFactor
       costJ + thetaCost
     }
@@ -37,22 +36,10 @@ object CostFunction extends StrictLogging {
   def cost(calcY: INDArray, y: INDArray): Double = {
     require(calcY.shape() sameElements y.shape(), s"calcy(${calcY.shape().mkString("x")}) should be same as y(${y.shape().mkString("x")})")
     val m = y.columns()
-    val avg = 1D / m
-    val costVec = Nd4j.zeros(m)
-    for (i <- 0 until m) {
-      val yT = y(->, i).T
-      val curCalcY = calcY(->, i)
-      val logCalcY = Transforms.log(curCalcY)
-      val logOneMinusCalcY = Transforms.log(curCalcY.rsub(1D))
-
-      val c = (yT.neg() dot logCalcY) - (yT.rsub(1D) dot logOneMinusCalcY)
-      require(c.isScalar)
-      val curCost = c(0, 0)
-      logger.debug("cost for y[{}] and yCalc[{}] = {}", yT, curCalcY, curCost)
-      costVec(i) = curCost
-    }
-
-    costVec.sumNumber().doubleValue() * avg
+    val logCalcY = Transforms.log(calcY)
+    val logOneMinusCalcY = Transforms.log(calcY.rsub(1D))
+    val c = (y.neg() * logCalcY) - (y.rsub(1D) * logOneMinusCalcY)
+    c.sumNumber().doubleValue() / m
   }
 
 }
