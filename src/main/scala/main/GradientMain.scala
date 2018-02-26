@@ -57,11 +57,18 @@ object GradientMain extends StrictLogging {
     val nesterovNN = inputLayer.copyNetwork
     val adaDeltaNN = inputLayer.copyNetwork
 
+    val iterations = 250
+    val lambda = 4
+    val learnRate = 2
     val dataset = DataSampler.createSampleSet(x, yMappedCols)
-    val gradDescCosts = GradientDescendOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, gradDescNN, 250, 4, 2)
-    val momentumCosts = MomentumOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, momentumNN, 250, 4, 2)
-    val nesterovCosts = NesterovAcceleratedOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, nesterovNN, 250, 4, 2)
-    val adaDeltaCosts = AdaDeltaOptimizer.minimize(dataset.trainingSet, dataset.trainingResultSet, adaDeltaNN, 250, 4, 2)
+    val gradDescCosts = GradientDescendOptimizer
+      .minimize(dataset.trainingSet, dataset.trainingResultSet, gradDescNN, iterations, lambda, learnRate)
+    val momentumCosts = MomentumOptimizer
+      .minimize(dataset.trainingSet, dataset.trainingResultSet, momentumNN, iterations, lambda, learnRate)
+    val nesterovCosts = NesterovAcceleratedOptimizer
+      .minimize(dataset.trainingSet, dataset.trainingResultSet, nesterovNN, iterations, lambda, learnRate)
+    val adaDeltaCosts = AdaDeltaOptimizer
+      .minimize(dataset.trainingSet, dataset.trainingResultSet, adaDeltaNN, iterations, lambda, learnRate)
 
     Seq((gradDescNN, "Gradient Descend"),
       (momentumNN, "Momentum"),
