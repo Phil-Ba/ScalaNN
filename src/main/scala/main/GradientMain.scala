@@ -37,6 +37,9 @@ object GradientMain extends StrictLogging {
     val hiddenLayer1Size = 35
     val hiddenLayer2Size = 35
     val labels = 10
+    val iterations = 200
+    val lambda = 4
+    val learnRate = 2
 
     val theta1 = RandomInitializier.initialize(hiddenLayer1Size, inputsSource, 1)
     val theta2 = RandomInitializier.initialize(hiddenLayer2Size, hiddenLayer1Size, 1)
@@ -52,50 +55,37 @@ object GradientMain extends StrictLogging {
     hiddenLayer1.connectTo(hiddenLayer2)
     hiddenLayer2.connectTo(outputLayer)
 
-    val gradDescNN = inputLayer.copyNetwork
-    val momentumNN = inputLayer.copyNetwork
-    val nesterovNN = inputLayer.copyNetwork
-    val adaDeltaNN = inputLayer.copyNetwork
-
-    val iterations = 250
-    val lambda = 4
-    val learnRate = 2
     val dataset = DataSampler.createSampleSet(x, yMappedCols)
-    val gradDescCosts = GradientDescendOptimizer
-      .minimize(dataset.trainingSet, dataset.trainingResultSet, gradDescNN, iterations, lambda, learnRate)
-    val momentumCosts = MomentumOptimizer
-      .minimize(dataset.trainingSet, dataset.trainingResultSet, momentumNN, iterations, lambda, learnRate)
-    val nesterovCosts = NesterovAcceleratedOptimizer
-      .minimize(dataset.trainingSet, dataset.trainingResultSet, nesterovNN, iterations, lambda, learnRate)
-    val adaDeltaCosts = AdaDeltaOptimizer
-      .minimize(dataset.trainingSet, dataset.trainingResultSet, adaDeltaNN, iterations, lambda, learnRate)
 
-    Seq((gradDescNN, "Gradient Descend"),
-      (momentumNN, "Momentum"),
-      (nesterovNN, "Nesterov"),
-      (adaDeltaNN, "AdaDelta"))
-      .foreach { case (nn, name) =>
+    val optimizers: Seq[(String, (INDArray, INDArray, InputLayer, Int, Double, Double) => Seq[Double])] =
+      Seq(
+        ("Gradient Descent", GradientDescendOptimizer.minimize),
+        ("Momentum", MomentumOptimizer.minimize(_, _, _, _, _, _)),
+        ("Nesterov", NesterovAcceleratedOptimizer.minimize(_, _, _, _, _, _)),
+        ("Ada Delta", AdaDeltaOptimizer.minimize)
+      )
+
+    val nameAndCosts = optimizers
+      .map({ case (name, optimizer) =>
+        val network = inputLayer.copyNetwork
+        val costs = optimizer(dataset.trainingSet, dataset.trainingResultSet, network, iterations, lambda, learnRate)
+        (name, network, costs)
+      }).map({ case (name, network, costs) =>
       logger.info("Testing {} optimization:", name)
-      runOnTrainingSet(nn, dataset)
-      runOnCvSet(nn, dataset)
-    }
+      runOnTrainingSet(network, dataset)
+      runOnCvSet(network, dataset)
+      (name, costs)
+    })
 
-
-    val runnable: Runnable = new Runnable {
-      override def run(): Unit = {
-        val panel = new ChartPanel(PlotCost.plot(Seq(
-          ("Gradient Descent", gradDescCosts),
-          ("Momentum Descent", momentumCosts),
-          ("Nesterov Descent", nesterovCosts),
-          ("AdaDelta", adaDeltaCosts)
-        )))
-        val frame = new JFrame()
-        frame.setSize(1600, 1080)
-        frame.setLocationRelativeTo(null)
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-        frame.setContentPane(panel)
-        frame.setVisible(true)
-      }
+    val runnable: Runnable = () => {
+      val panel = new ChartPanel(PlotCost.plot(nameAndCosts))
+      val frame = new JFrame()
+      val factor = 100
+      frame.setSize(16 * factor, 9 * factor)
+      frame.setLocationRelativeTo(null)
+      frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+      frame.setContentPane(panel)
+      frame.setVisible(true)
     }
     SwingUtilities.invokeLater(runnable)
   }
@@ -121,7 +111,7 @@ object GradientMain extends StrictLogging {
     logger.info("---------------------\r\n\r\n")
   }
 
-  private def runOnTrainingSet(inputLayer: InputLayer, dataset: SampleSet) = {
+  private def runOnTrainingSet(inputLayer: InputLayer, dataset: SampleSet): Unit = {
     val tSet = dataset.trainingSet
     val tResultSet = dataset.trainingResultSet
     var falseCount = 0
