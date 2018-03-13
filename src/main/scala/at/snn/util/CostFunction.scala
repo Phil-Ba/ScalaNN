@@ -3,6 +3,7 @@ package at.snn.util
 import com.typesafe.scalalogging.StrictLogging
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.ops.transforms.Transforms
+import org.nd4s.Implicits._
 
 /**
   *
