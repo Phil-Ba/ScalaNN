@@ -31,9 +31,6 @@ class LayerTest extends FunSpec with Matchers with TableDrivenPropertyChecks {
         result(0) shouldBe expected.toDouble +- 0.001
       }
     }
-    it("") {
-      println(in.activate(Array(1, 0, 1, 1, 0, 1, 0, 0).asNDArray(3, 2)))
-    }
   }
 
 }
