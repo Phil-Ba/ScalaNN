@@ -77,7 +77,8 @@ object GradientMain extends StrictLogging {
       (name, costs)
     })
 
-    val runnable: Runnable = () => {
+    val runnable = new Runnable() {
+      override def run(): Unit = {
       val panel = new ChartPanel(PlotCost.plot(nameAndCosts))
       val frame = new JFrame()
       val factor = 100
@@ -86,6 +87,7 @@ object GradientMain extends StrictLogging {
       frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
       frame.setContentPane(panel)
       frame.setVisible(true)
+      }
     }
     SwingUtilities.invokeLater(runnable)
   }
