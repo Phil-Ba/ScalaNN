@@ -59,12 +59,6 @@ object DataSampler {
       testResultSet(->, idx._2) = y(->, idx._1)
     }
 
-    //    val trainingSet = xShuffled(0 until trainRows, ->)
-    //    val cvSet = xShuffled(trainRows until trainRows + cvRows, ->)
-    //    val testSet = xShuffled(trainRows + cvRows until total, ->)
-    //    val trainingResultSet = yShuffled(->, 0 until trainRows)
-    //    val cvResultSet = yShuffled(->, trainRows until trainRows + cvRows)
-    //    val testResultSet = yShuffled(->, trainRows + cvRows until total)
     SampleSet(trainingSet, trainingResultSet, cvSet, cvResultSet, testSet, testResultSet)
   }
 

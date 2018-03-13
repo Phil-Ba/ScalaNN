@@ -10,6 +10,7 @@ import at.snn.util.optimizers.{AdaDeltaOptimizer, GradientDescendOptimizer, Mome
 import at.snn.util.plot.PlotCost
 import com.typesafe.scalalogging.StrictLogging
 import org.jfree.chart.ChartPanel
+import org.nd4j.linalg.api.buffer.DataBuffer.Type
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4s.Implicits._
@@ -20,18 +21,16 @@ import org.nd4s.Implicits._
 object GradientMain extends StrictLogging {
 
   def main(args: Array[String]): Unit = {
+    Nd4j.setDataType(Type.DOUBLE)
+
     val map = MatlabImporter("src/main/resources/test.mat")
     val x = map("X")
     val y = map("y")
     val yMappedCols = Nd4j.zeros(10, y.rows())
     for (i <- 0 until y.rows) {
       val yVal: Int = y(i, 0).intValue()
-      //      val mappedY = LabelConverter.labelToVector(yVal, 10)
       LabelConverter.labelToVector(yMappedCols(->, i), yVal, 10)
-      //      yMappedCols(->, i) = mappedY
     }
-
-    //    val yReshaped = yMappedCols.reshape('f', 10, y.rows())
 
     val inputsSource = x.columns()
     val hiddenLayer1Size = 35
