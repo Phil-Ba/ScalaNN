@@ -1,15 +1,12 @@
 package at.snn.main
 
-import javax.swing.{JFrame, SwingUtilities, WindowConstants}
-
 import at.snn.model.data.SampleSet
 import at.snn.model.nn.InputLayer
 import at.snn.util.NNBuilder
 import at.snn.util.data.{DataSampler, LabelConverter, MatlabImporter}
 import at.snn.util.optimizers.{GradientDescendOptimizer, MomentumOptimizer, NesterovAcceleratedOptimizer}
-import at.snn.util.plot.PlotCost
+import at.snn.util.plot.{ChartRenderer, PlotCost}
 import com.typesafe.scalalogging.StrictLogging
-import org.jfree.chart.ChartPanel
 import org.nd4j.linalg.api.buffer.DataBuffer.Type
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
@@ -36,17 +33,17 @@ object GradientMain extends StrictLogging {
     val labels = 10
     val iterations = 200
     val lambda = 4
-    val learnRate = 2
+    val learnRate = 1
 
-    val inputLayer = NNBuilder.buildNetwork(inputsSource, labels, 35, 35)
+    val inputLayer = NNBuilder.buildNetwork(inputsSource, labels, 35, 35, 35, 35)
 
     val dataset = DataSampler.createSampleSet(x, yMappedCols)
 
     val optimizers: Seq[(String, (INDArray, INDArray, InputLayer, Int, Double, Double) => Seq[Double])] =
       Seq(
         ("Gradient Descent", GradientDescendOptimizer.minimize),
-        ("Momentum", MomentumOptimizer.minimize(_, _, _, _, _, _)),
-        ("Nesterov", NesterovAcceleratedOptimizer.minimize(_, _, _, _, _, _))
+        ("Momentum", MomentumOptimizer.minimize(_, _, _, _, _, _, 0.5)),
+        ("Nesterov", NesterovAcceleratedOptimizer.minimize(_, _, _, _, _, _, 0.5))
       )
 
     val nameAndCosts = optimizers
@@ -61,19 +58,7 @@ object GradientMain extends StrictLogging {
       (name, costs)
     })
 
-    val runnable = new Runnable() {
-      override def run(): Unit = {
-      val panel = new ChartPanel(PlotCost.plot(nameAndCosts))
-      val frame = new JFrame()
-      val factor = 100
-      frame.setSize(16 * factor, 9 * factor)
-      frame.setLocationRelativeTo(null)
-      frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-      frame.setContentPane(panel)
-      frame.setVisible(true)
-      }
-    }
-    SwingUtilities.invokeLater(runnable)
+    ChartRenderer.render(PlotCost.plot(nameAndCosts))
   }
 
 
