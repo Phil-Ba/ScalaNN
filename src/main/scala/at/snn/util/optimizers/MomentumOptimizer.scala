@@ -19,7 +19,6 @@ object MomentumOptimizer extends StrictLogging {
       .map(Nd4j.zerosLike(_))
 
     val costs = (1 to iterations).map { i =>
-      inputLayer.updateWithGradients(vtMinusOne)
 
       val (yCalc, gradients) = NNRunner.runWithData(x, y, inputLayer, lambda)
       val cost = CostFunction.cost(yCalc, y, inputLayer.getNNThetas, lambda)
@@ -29,9 +28,10 @@ object MomentumOptimizer extends StrictLogging {
         gradients.foreach(_ *= learnRate)
       }
 
-      vtMinusOne = vtMinusOne.zip(gradients).map { case (vtPrev, vt) =>
-        (vtPrev * momentum) + vt
+      vtMinusOne.zip(gradients).foreach { case (vtPrev, vt) =>
+        (vtPrev *= momentum) += vt
       }
+      inputLayer.updateWithGradients(vtMinusOne)
       cost
     }
     costs
