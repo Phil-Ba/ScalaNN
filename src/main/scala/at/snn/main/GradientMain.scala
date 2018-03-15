@@ -77,7 +77,7 @@ object GradientMain extends StrictLogging {
   }
 
 
-  private def runOnCvSet(inputLayer: InputLayer, dataset: SampleSet) = {
+  private def runOnCvSet(inputLayer: InputLayer, dataset: SampleSet): Unit = {
     val cvSet = dataset.cvSet
     val cvResultSet = dataset.cvResultSet
     var falseCount = 0
