@@ -5,8 +5,8 @@ package at.snn.model.data
   */
 case class PredictionResult(totalPredictions: Int, correctPredictions: Int, wrongPredictions: Int) {
 
-  val correctPercent: Double = (correctPredictions / totalPredictions) * 100D
-  val wrongPercent: Double = (wrongPredictions / totalPredictions) * 100D
+  val correctPercent: Double = (correctPredictions / totalPredictions.toDouble) * 100
+  val wrongPercent: Double = (wrongPredictions / totalPredictions.toDouble) * 100
 
 }
 
