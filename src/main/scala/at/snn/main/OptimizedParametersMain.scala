@@ -40,18 +40,18 @@ object OptimizedParametersMain extends StrictLogging {
     val dataset = DataSampler.createSampleSet(x, yMappedCols)
 
     val gradOptimizer: (InputLayer, Double) => Seq[Double] = GradientDescendOptimizer
-      .minimize(dataset.trainingSet, dataset.trainingResultSet, _, 50, _, 1)
+      .minimize(dataset.trainingSet, dataset.trainingResultSet, _, 50, _, learnRate)
     val gradLambdaParam = ParamOptimizer
       .optimizeByCost(dataset, inputLayer, gradOptimizer, lambdaValues)
       ._1
 
     val momentumOptimizer: (InputLayer, Double, Double) => Seq[Double] = MomentumOptimizer
-      .minimize(dataset.trainingSet, dataset.trainingResultSet, _, 50, _, 1, _)
+      .minimize(dataset.trainingSet, dataset.trainingResultSet, _, 50, _, learnRate, _)
     val (momLambdaParam, momDeltaParam, _) = ParamOptimizer
       .optimizeByCost(dataset, inputLayer, momentumOptimizer, lambdaValues, deltaValues)
 
     val nesterovOptimizer: (InputLayer, Double, Double) => Seq[Double] = NesterovAcceleratedOptimizer
-      .minimize(dataset.trainingSet, dataset.trainingResultSet, _, 50, _, 1, _)
+      .minimize(dataset.trainingSet, dataset.trainingResultSet, _, 50, _, learnRate, _)
     val (nesterovLambdaParam, nesterovDeltaParam, _) = ParamOptimizer
       .optimizeByCost(dataset, inputLayer, nesterovOptimizer, lambdaValues, deltaValues)
 
