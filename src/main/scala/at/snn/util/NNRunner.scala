@@ -53,8 +53,8 @@ object NNRunner extends StrictLogging {
   def runPredictions(nn: InputLayer, x: INDArray, y: INDArray): PredictionResult = {
     val predictions = (0 until x.rows()) map { i =>
       val result = nn.activate(x(i, ->))
-      val y = y(->, i)
-      val yLabel = LabelConverter.vectorToLabel(y)
+      val yCur = y(->, i)
+      val yLabel = LabelConverter.vectorToLabel(yCur)
       val predictLabel = LabelConverter.vectorToLabel(result)
       val correct = yLabel == predictLabel
       (correct, predictLabel, yLabel)
