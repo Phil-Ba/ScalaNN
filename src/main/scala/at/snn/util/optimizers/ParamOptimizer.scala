@@ -27,7 +27,7 @@ object ParamOptimizer {
       val calcY = NNRunner.runWithData(dataSet.cvSet, nn)
       val cost = CostFunction.cost(calcY, dataSet.cvResultSet)
       (p, cost)
-    }.maxBy(_._2)
+    }.minBy(_._2)
   }
 
 }
