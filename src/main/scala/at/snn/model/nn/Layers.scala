@@ -21,16 +21,13 @@ object Layers {
     val units: Int
     val inputs: Int
 
-    protected def validateXInput(x: INDArray) = {
+    protected def validateXInput(x: INDArray): Unit = {
       require(x.columns() == this.inputs, s"x.cols(${x.columns()}) | this.inputs($inputs)")
     }
 
     protected def doActivation(x: INDArray): (Activation, Z) = {
-      //      val xPlusBias = Nd4j.hstack(Nd4j.ones(x.rows, 1), x)
       val xPlusBias = Nd4j.ones(x.rows(), x.columns() + 1)
       xPlusBias(->, 1 until xPlusBias.columns()) = x
-      //      hstack(Nd4j.ones(x.rows, 1), x)
-      //units X inputs   inputs X samples
       val z = thetas dot xPlusBias.T
       val a = Transforms.sigmoid(z)
       (a, z)
@@ -61,7 +58,7 @@ object Layers {
                                                          y: INDArray): (Result, Seq[Gradients], Delta) = {
       require(nextLayer.isDefined)
       validateXInput(x)
-      //25x401
+
       val (activation, z) = doActivation(x)
       val (result, gradients, prevDelta) = nextLayer.get.activateWithGradients(activation.T, y)
       val nextThetas = nextLayer.get.thetas
@@ -69,7 +66,7 @@ object Layers {
       logger.debug("prevDelta[{}]", prevDelta.printShape)
       logger.debug("z[{}]", z.printShape)
       logger.debug("nextThetas[{}]", nextLayer.get.thetas.printShape)
-      //26x10 10x1 25x1
+
       val curDelta = (nextThetas(->, 1 -> nextThetas.columns()).T dot prevDelta) * Transforms.sigmoidDerivative(z, true)
       val curGradient = curDelta dot Nd4j.hstack(Nd4j.ones(x.rows(), 1), x)
       (result, curGradient +: gradients, curDelta)
@@ -133,19 +130,6 @@ object Layers {
           .map { gt =>
             val thetasExclBias = gt._2(->, 1 until gt._2.columns())
             gt._1(->, 1 until gt._1.columns()) += (thetasExclBias * lambda)
-            //
-            //            val thetasExclBias = gt._2(->, 1 until gt._2.columns())
-            //            gt._1(->, 1 until gt._1.columns()) = gt._1(->, 1 until gt._1.columns()) + (thetasExclBias * lambda)
-
-            //                        val thetasExclBias = gt._2(->, 1 until gt._2.columns())
-            //            val gradientsExclBias = gt._1(->, 1 until gt._1.columns())
-            //            val penalizedGradients = gradientsExclBias + (thetasExclBias * lambda)
-            //            Nd4j.hstack(gt._1(->, 0), penalizedGradients)
-
-            //            gt._1(->, 1 until gt._1.columns()) = penalizedGradients
-            //            gt._1(->, 1 until gt._1.columns()) += penalizedGradients
-            //
-
           }
         (result, penalizedGradients, delta)
       }
@@ -175,7 +159,7 @@ object Layers {
       logger.debug("Y[{}]", y.printShape)
       logger.debug("Activation[{}]", activation.printShape)
       logger.debug("Delta[{}]", delta.printShape)
-      //      10x1 1x25
+
       val curGradient = delta dot Nd4j.hstack(Nd4j.ones(x.rows(), 1), x)
 
       (activation, Seq(curGradient), delta)
