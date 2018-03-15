@@ -1,7 +1,10 @@
 package at.snn.util
 
+import at.snn.model.data.PredictionResult
 import at.snn.model.nn.InputLayer
 import at.snn.model.nn.Layers.Layer
+import at.snn.util.data.LabelConverter
+import com.typesafe.scalalogging.StrictLogging
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4s.Implicits.{->, _}
@@ -9,7 +12,7 @@ import org.nd4s.Implicits.{->, _}
 /**
   *
   */
-object NNRunner {
+object NNRunner extends StrictLogging {
 
   /**
     * Feeds the input layer with data and accumulates the results
@@ -47,4 +50,15 @@ object NNRunner {
     inputLayer.activate(x)
   }
 
+  def runPredictions(nn: InputLayer, x: INDArray, y: INDArray): PredictionResult = {
+    val predictions = (0 until x.rows()) map { i =>
+      val result = nn.activate(x(i, ->))
+      val y = y(->, i)
+      val yLabel = LabelConverter.vectorToLabel(y)
+      val predictLabel = LabelConverter.vectorToLabel(result)
+      val correct = yLabel == predictLabel
+      (correct, predictLabel, yLabel)
+    }
+    PredictionResult(predictions)
+  }
 }
