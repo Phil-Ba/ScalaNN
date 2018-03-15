@@ -11,7 +11,8 @@ import org.nd4s.Implicits.RichINDArray
   */
 object GradientDescendOptimizer extends StrictLogging {
 
-  def minimize(x: INDArray, y: INDArray, inputLayer: InputLayer, iterations: Int = 100, lambda: Double = 0, learnRate: Double = 1D) = {
+  def minimize(x: INDArray, y: INDArray, inputLayer: InputLayer, iterations: Int = 100, lambda: Double = 0,
+               learnRate: Double = 1D): Seq[Double] = {
 
     val costs = (1 to iterations).map { i =>
       val (yCalc, gradients) = NNRunner.runWithData(x, y, inputLayer, lambda)

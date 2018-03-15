@@ -13,7 +13,7 @@ import org.nd4s.Implicits.RichINDArray
 object NesterovAcceleratedOptimizer extends StrictLogging {
 
   def minimize(x: INDArray, y: INDArray, inputLayer: InputLayer, iterations: Int = 100
-               , lambda: Double = 0, learnRate: Double = 1D, momentum: Double = 0.9) = {
+               , lambda: Double = 0, learnRate: Double = 1D, momentum: Double = 0.9): Seq[Double] = {
 
     var vtMinusOne = inputLayer.getNNThetas
       .map(Nd4j.zerosLike(_))
