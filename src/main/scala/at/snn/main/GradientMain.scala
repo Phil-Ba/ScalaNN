@@ -3,10 +3,10 @@ package at.snn.main
 import javax.swing.{JFrame, SwingUtilities, WindowConstants}
 
 import at.snn.model.data.SampleSet
-import at.snn.model.nn.{HiddenLayer, InputLayer, OutputLayer}
-import at.snn.util.RandomInitializier
+import at.snn.model.nn.InputLayer
+import at.snn.util.NNBuilder
 import at.snn.util.data.{DataSampler, LabelConverter, MatlabImporter}
-import at.snn.util.optimizers.{AdaDeltaOptimizer, GradientDescendOptimizer, MomentumOptimizer, NesterovAcceleratedOptimizer}
+import at.snn.util.optimizers.{GradientDescendOptimizer, MomentumOptimizer, NesterovAcceleratedOptimizer}
 import at.snn.util.plot.PlotCost
 import com.typesafe.scalalogging.StrictLogging
 import org.jfree.chart.ChartPanel
@@ -33,26 +33,12 @@ object GradientMain extends StrictLogging {
     }
 
     val inputsSource = x.columns()
-    val hiddenLayer1Size = 35
-    val hiddenLayer2Size = 35
     val labels = 10
     val iterations = 200
     val lambda = 4
     val learnRate = 2
 
-    val theta1 = RandomInitializier.initialize(hiddenLayer1Size, inputsSource, 1)
-    val theta2 = RandomInitializier.initialize(hiddenLayer2Size, hiddenLayer1Size, 1)
-    val theta3 = RandomInitializier.initialize(labels, hiddenLayer2Size, 1)
-    //    val theta3 = RandomInitializier.initialize(labels, hiddenLayer1Size, 1)
-
-    val inputLayer = new InputLayer(inputsSource)
-    val hiddenLayer1 = new HiddenLayer(theta1)
-    val hiddenLayer2 = new HiddenLayer(theta2)
-    val outputLayer = new OutputLayer(theta3)
-    inputLayer.connectTo(hiddenLayer1)
-    //    hiddenLayer1.connectTo(outputLayer)
-    hiddenLayer1.connectTo(hiddenLayer2)
-    hiddenLayer2.connectTo(outputLayer)
+    val inputLayer = NNBuilder.buildNetwork(inputsSource, labels, 35, 35)
 
     val dataset = DataSampler.createSampleSet(x, yMappedCols)
 
@@ -60,8 +46,7 @@ object GradientMain extends StrictLogging {
       Seq(
         ("Gradient Descent", GradientDescendOptimizer.minimize),
         ("Momentum", MomentumOptimizer.minimize(_, _, _, _, _, _)),
-        ("Nesterov", NesterovAcceleratedOptimizer.minimize(_, _, _, _, _, _)),
-        ("Ada Delta", AdaDeltaOptimizer.minimize)
+        ("Nesterov", NesterovAcceleratedOptimizer.minimize(_, _, _, _, _, _))
       )
 
     val nameAndCosts = optimizers
