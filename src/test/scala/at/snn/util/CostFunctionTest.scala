@@ -8,8 +8,8 @@ import org.scalatest.{FunSpec, Matchers}
   */
 class CostFunctionTest extends FunSpec with Matchers {
 
-  describe("") {
-    it("") {
+  describe("The cost function") {
+    it("should calculate the correct cost given these sample input values") {
       val x = Array(
         0.000112661530227,
         0.001741278557492,
