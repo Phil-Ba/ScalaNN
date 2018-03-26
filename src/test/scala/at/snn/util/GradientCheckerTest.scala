@@ -1,14 +1,11 @@
 package at.snn.util
 
-import org.nd4j.linalg.api.buffer.DataBuffer.Type
-import org.nd4j.linalg.factory.Nd4j
-import org.scalatest.{FunSpec, Matchers}
+import at.snn.BaseMatcherTestClass
 
 /**
   *
   */
-class GradientCheckerTest extends FunSpec with Matchers {
-  Nd4j.setDataType(Type.DOUBLE)
+class GradientCheckerTest extends BaseMatcherTestClass {
 
   describe("The GradientChecker results") {
 

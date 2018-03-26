@@ -1,10 +1,10 @@
 package at.snn.util.data
 
+import at.snn.BaseMatcherTestClass
 import org.nd4j.linalg.api.buffer.DataBuffer.Type
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4s.Implicits._
 import org.scalatest.AppendedClues.convertToClueful
-import org.scalatest.{FunSpec, Matchers}
 
 import scala.util.Random
 
@@ -12,7 +12,7 @@ import scala.util.Random
 /**
   *
   */
-class FeatureNormalizerTest extends FunSpec with Matchers {
+class FeatureNormalizerTest extends BaseMatcherTestClass {
 
   Nd4j.setDataType(Type.DOUBLE)
   private val feature1 = Array(2.5, 4.5, 3.8, 1.2)

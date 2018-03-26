@@ -1,14 +1,14 @@
 package at.snn.model.nn
 
+import at.snn.BaseMatcherTestClass
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4s.Implicits._
 import org.scalatest.prop.TableDrivenPropertyChecks
-import org.scalatest.{FunSpec, Matchers}
 
 /**
   *
   */
-class LayerTest extends FunSpec with Matchers with TableDrivenPropertyChecks {
+class LayerTest extends BaseMatcherTestClass with TableDrivenPropertyChecks {
 
   describe("A simple AND neuronal network") {
     val andTable = Table(("x1", "x2", "expected"),

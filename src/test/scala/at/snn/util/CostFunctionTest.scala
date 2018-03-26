@@ -1,12 +1,12 @@
 package at.snn.util
 
+import at.snn.BaseMatcherTestClass
 import org.nd4s.Implicits._
-import org.scalatest.{FunSpec, Matchers}
 
 /**
   *
   */
-class CostFunctionTest extends FunSpec with Matchers {
+class CostFunctionTest extends BaseMatcherTestClass {
 
   describe("The cost function") {
     it("should calculate the correct cost given these sample input values") {
