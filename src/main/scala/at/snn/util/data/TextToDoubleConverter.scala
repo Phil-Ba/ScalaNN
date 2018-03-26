@@ -12,7 +12,13 @@ class TextToDoubleConverter {
   private val values: mutable.Map[String, Double] = new mutable.HashMap[String, Double]
 
   def convertToDouble(inp: String): Double = {
-    values.getOrElseUpdate(inp, values.maxBy(_._2)._2 + 1)
+    values.getOrElseUpdate(inp, {
+      if (values.isEmpty) {
+        0.0
+      } else {
+        values.values.max
+      }
+    })
   }
 
 }
