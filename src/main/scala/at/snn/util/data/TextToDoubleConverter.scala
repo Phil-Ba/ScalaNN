@@ -16,7 +16,7 @@ class TextToDoubleConverter {
       if (values.isEmpty) {
         0.0
       } else {
-        values.values.max
+        values.values.max + 1
       }
     })
   }
