@@ -17,7 +17,7 @@ object Main {
 
     val rawData = MatlabImporter("src/main/resources/test.mat")
 
-    val (x, yMappedCols) = rawData.getData()
+    val (x, yMappedCols) = rawData.getData
 
     val (xS, yS) = sample(x, yMappedCols, 5)
     GradientChecker.check()

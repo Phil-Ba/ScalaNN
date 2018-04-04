@@ -20,8 +20,7 @@ object OptimizedParametersMain extends StrictLogging {
     Nd4j.setDataType(Type.DOUBLE)
 
     val rawData = MatlabImporter("src/main/resources/test.mat")
-    val (x, yMappedCols) = rawData.getData()
-
+    val (x, yMappedCols) = rawData.getData
 
     val inputsSource = x.columns()
     val labels = 10
