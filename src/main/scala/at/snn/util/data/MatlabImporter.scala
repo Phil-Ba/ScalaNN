@@ -1,9 +1,7 @@
 package at.snn.util.data
 
-import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4s.Implicits.doubleArray2INDArray
+import at.snn.model.data.RawData
 
-import scala.collection.immutable.HashMap
 import scala.io.Codec
 
 /**
@@ -11,16 +9,24 @@ import scala.io.Codec
   */
 object MatlabImporter {
 
-  def apply(file: String): HashMap[String, INDArray] = {
+  def apply(file: String): RawData = {
     val lines = scala.io.Source.fromFile(file)(Codec.ISO8859)
       .getLines()
 
-    var data = HashMap[String, INDArray]()
+    val data = new RawData(255, 10)
 
     while (lines.hasNext) {
       readHeaders(lines).foreach(header => {
         val (name, _, rows, columns) = header
-        data += (name -> readData(rows, columns, lines))
+        val read = readData(rows, columns, lines)
+        if (name == "X") {
+          read
+            .sliding(columns, columns)
+            .foreach(line => data.addData(line: _*))
+        } else {
+          read.foreach(data.addLabel)
+        }
+
       })
     }
 
@@ -40,11 +46,10 @@ object MatlabImporter {
     }
   }
 
-  private def readData(rows: Int, columns: Int, lines: Iterator[String]): INDArray = {
-    val data = lines.take(rows)
+  private def readData(rows: Int, columns: Int, lines: Iterator[String]): Iterator[Double] = {
+    lines
+      .take(rows)
       .flatMap(row => row.tail.split(' ').map(_.toDouble))
-      .toArray
-    data.asNDArray(rows, columns)
   }
 
 }

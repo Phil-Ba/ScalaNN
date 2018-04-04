@@ -15,21 +15,11 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-    val map = MatlabImporter("src/main/resources/test.mat")
-    println(map.keys)
+    val rawData = MatlabImporter("src/main/resources/test.mat")
 
-    val x = map("X")
-    val y = map("y")
-    val yMappedCols = Nd4j.zeros(1, y.rows() * 10)
-    for (i <- 0 until y.rows) {
-      val yVal: Int = y(i, 0).intValue()
-      val updIdx = (yVal % 10) + 10 * i
-      yMappedCols(0, updIdx) = 1
-    }
+    val (x, yMappedCols) = rawData.getData()
 
-    val yReshaped = yMappedCols.reshape('f', 10, y.rows())
-
-    val (xS, yS) = sample(x, yReshaped, 5)
+    val (xS, yS) = sample(x, yMappedCols, 5)
     GradientChecker.check()
   }
 

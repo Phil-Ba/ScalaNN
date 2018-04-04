@@ -16,7 +16,14 @@ object LabelConverter {
     vector
   }
 
-  def labelToVector(labelVector: INDArray, label: Int, labels: Int) = {
+  def labelToVector(label: Double, labels: Int): INDArray = {
+    val labelIdx = (label % labels).toInt
+    val vector = Nd4j.zeros(labels, 1)
+    vector(labelIdx, 0) = 1.0
+    vector
+  }
+
+  def labelToVector(labelVector: INDArray, label: Int, labels: Int): INDArray = {
     val labelIdx = label % labels
     labelVector(labelIdx, 0) = 1
   }

@@ -10,7 +10,6 @@ import com.typesafe.scalalogging.StrictLogging
 import org.nd4j.linalg.api.buffer.DataBuffer.Type
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
-import org.nd4s.Implicits._
 
 /**
   *
@@ -20,14 +19,9 @@ object OptimizedParametersMain extends StrictLogging {
   def main(args: Array[String]): Unit = {
     Nd4j.setDataType(Type.DOUBLE)
 
-    val map = MatlabImporter("src/main/resources/test.mat")
-    val x = map("X")
-    val y = map("y")
-    val yMappedCols = Nd4j.zeros(10, y.rows())
-    for (i <- 0 until y.rows) {
-      val yVal: Int = y(i, 0).intValue()
-      LabelConverter.labelToVector(yMappedCols(->, i), yVal, 10)
-    }
+    val rawData = MatlabImporter("src/main/resources/test.mat")
+    val (x, yMappedCols) = rawData.getData()
+
 
     val inputsSource = x.columns()
     val labels = 10

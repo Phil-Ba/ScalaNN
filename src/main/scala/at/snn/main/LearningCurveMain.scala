@@ -1,7 +1,5 @@
 package at.snn.main
 
-import javax.swing.{JFrame, SwingUtilities, WindowConstants}
-
 import at.snn.model.data.SampleSet
 import at.snn.model.nn.{HiddenLayer, InputLayer, OutputLayer}
 import at.snn.util.data.{DataSampler, LabelConverter, MatlabImporter}
@@ -9,6 +7,7 @@ import at.snn.util.optimizers.GradientDescendOptimizer
 import at.snn.util.plot.PlotCost
 import at.snn.util.{CostFunction, RandomInitializier}
 import com.typesafe.scalalogging.StrictLogging
+import javax.swing.{JFrame, SwingUtilities, WindowConstants}
 import org.jfree.chart.ChartPanel
 import org.nd4j.linalg.api.buffer.DataBuffer.Type
 import org.nd4j.linalg.api.ndarray.INDArray
@@ -23,14 +22,8 @@ object LearningCurveMain extends StrictLogging {
   def main(args: Array[String]): Unit = {
     Nd4j.setDataType(Type.DOUBLE)
 
-    val map = MatlabImporter("src/main/resources/test.mat")
-    val x = map("X")
-    val y = map("y")
-    val yMappedCols = Nd4j.zeros(10, y.rows())
-    for (i <- 0 until y.rows) {
-      val yVal: Int = y(i, 0).intValue()
-      LabelConverter.labelToVector(yMappedCols(->, i), yVal, 10)
-    }
+    val rawData = MatlabImporter("src/main/resources/test.mat")
+    val (x, yMappedCols) = rawData.getData()
 
     val inputsSource = x.columns()
     val hiddenLayer1Size = 35
