@@ -10,16 +10,14 @@ import org.nd4s.Implicits._
 object LabelConverter {
 
   def labelToVector(label: Int, labels: Int): INDArray = {
-    val labelIdx = label % labels
     val vector = Nd4j.zeros(labels, 1)
-    vector(labelIdx, 0) = 1
+    vector(label.toInt, 0) = 1
     vector
   }
 
   def labelToVector(label: Double, labels: Int): INDArray = {
-    val labelIdx = (label % labels).toInt
     val vector = Nd4j.zeros(labels, 1)
-    vector(labelIdx, 0) = 1.0
+    vector(label.toInt, 0) = 1.0
     vector
   }
 
