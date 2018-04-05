@@ -11,7 +11,7 @@ import org.nd4s.Implicits._
   * @param columns of the x-data
   * @param labels  of the y-data
   */
-class RawData(columns: Int, labels: Int) {
+class RawData(val columns: Int, val labels: Int) {
 
   private var x: Seq[INDArray] = Nil
   private var y: Seq[INDArray] = Nil
