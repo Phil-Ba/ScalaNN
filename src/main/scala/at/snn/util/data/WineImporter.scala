@@ -26,7 +26,7 @@ object WineImporter {
     val parser = new CsvParser(settings)
     parser.parse(new File(file))
 
-    val rawData = new RawData(11, 10)
+    val rawData = new RawData(rowProcessor.getHeaders.length - 1, 10)
     rowProcessor
       .getRows
       .foreach(row => {
