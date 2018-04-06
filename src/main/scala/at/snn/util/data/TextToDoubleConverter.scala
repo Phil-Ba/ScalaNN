@@ -11,6 +11,11 @@ class TextToDoubleConverter {
 
   private val values: mutable.Map[String, Double] = new mutable.HashMap[String, Double]
 
+  /**
+    *
+    * @param inp string to convert
+    * @return the double value the string is mapped to
+    */
   def convertToDouble(inp: String): Double = {
     values.getOrElseUpdate(inp, {
       if (values.isEmpty) {
