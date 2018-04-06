@@ -2,7 +2,7 @@ package at.snn.main
 
 import at.snn.model.data.SampleSet
 import at.snn.model.nn.InputLayer
-import at.snn.util.data.{DataSampler, LabelConverter, MatlabImporter}
+import at.snn.util.data.{DataSampler, LabelConverter, WineImporter}
 import at.snn.util.optimizers.{GradientDescendOptimizer, MomentumOptimizer, NesterovAcceleratedOptimizer}
 import at.snn.util.plot.{ChartRenderer, PlotCost}
 import at.snn.util.{NNBuilder, NNRunner}
@@ -10,6 +10,8 @@ import com.typesafe.scalalogging.StrictLogging
 import org.nd4j.linalg.api.buffer.DataBuffer.Type
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
+
+import scala.io.StdIn
 
 /**
   *
@@ -19,11 +21,22 @@ object GradientMain extends StrictLogging {
   def main(args: Array[String]): Unit = {
     Nd4j.setDataType(Type.DOUBLE)
 
-    val rawData = MatlabImporter("src/main/resources/test.mat")
+    println("Please choose the input source:\r\n" +
+      "1: Numbers from Matlab file\r\n" +
+      "2: Red wine quality\r\n" +
+      "3: White wine quality")
+    val choice = StdIn.readInt()
+
+    val rawData = choice match {
+      case 1 => WineImporter("src/main/resources/numbers.mat")
+      case 2 => WineImporter("src/main/resources/wine/winequality-red.csv")
+      case 3 => WineImporter("src/main/resources/wine/winequality-white.csv")
+    }
+
     val (x, yMappedCols) = rawData.getData
 
     val inputsSource = x.columns()
-    val labels = 10
+    val labels = rawData.labels
     val iterations = 200
     val lambda = 4
     val learnRate = 1
