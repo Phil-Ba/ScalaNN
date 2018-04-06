@@ -2,7 +2,7 @@ package at.snn.main
 
 import at.snn.model.data.SampleSet
 import at.snn.model.nn.InputLayer
-import at.snn.util.data.{DataSampler, LabelConverter, MatlabImporter, WineImporter}
+import at.snn.util.data._
 import at.snn.util.optimizers.{GradientDescendOptimizer, MomentumOptimizer, NesterovAcceleratedOptimizer}
 import at.snn.util.plot.{ChartRenderer, PlotCost}
 import at.snn.util.{NNBuilder, NNRunner}
@@ -22,26 +22,38 @@ object GradientMain extends StrictLogging {
     Nd4j.setDataType(Type.DOUBLE)
 
     println("Please choose the input source:\r\n" +
-      "1: Numbers from Matlab file\r\n" +
+      "1: Number recognition\r\n" +
       "2: Red wine quality\r\n" +
-      "3: White wine quality")
+      "3: White wine quality\r\n" +
+      "4: Diabetes data")
     val choice = StdIn.readInt()
 
     val rawData = choice match {
       case 1 => MatlabImporter("src/main/resources/numbers.mat")
       case 2 => WineImporter("src/main/resources/wine/winequality-red.csv")
       case 3 => WineImporter("src/main/resources/wine/winequality-white.csv")
+      case 4 => DiabetesImporter("src/main/resources/diabetes/diabetes.csv")
     }
 
     val (x, yMappedCols) = rawData.getData
-
     val inputsSource = x.columns()
     val labels = rawData.labels
     val iterations = 200
     val lambda = 4
     val learnRate = 1
 
-    val inputLayer = NNBuilder.buildNetwork(inputsSource, labels, 35, 35, 35, 35)
+    println("Use default neuronal network[enter], or insert layer sizes separated by commas.")
+    val layers: Array[Int] = StdIn.readLine()
+      .split(',')
+      .map(_.trim)
+      .withFilter(_.isEmpty == false)
+      .map(_.toInt)
+    match {
+      case Array() => Array(((labels + inputsSource) / 2.0).ceil.toInt)
+      case empt@Array(_*) => empt
+    }
+
+    val inputLayer = NNBuilder.buildNetwork(inputsSource, labels, layers: _*)
 
     val dataset = DataSampler.createSampleSet(x, yMappedCols)
 
