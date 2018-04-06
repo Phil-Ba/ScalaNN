@@ -24,9 +24,10 @@ object MatlabImporter {
             .sliding(columns, columns)
             .foreach(line => data.addData(line: _*))
         } else {
-          read.foreach(data.addLabel)
+          //TODO move to more generic place
+          //Workaround since labels are not 0-index based
+          read.foreach(lab => data.addLabel(lab % 10))
         }
-
       })
     }
 
