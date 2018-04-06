@@ -2,7 +2,7 @@ package at.snn.main
 
 import at.snn.model.data.SampleSet
 import at.snn.model.nn.InputLayer
-import at.snn.util.data.{DataSampler, LabelConverter, WineImporter}
+import at.snn.util.data.{DataSampler, LabelConverter, MatlabImporter, WineImporter}
 import at.snn.util.optimizers.{GradientDescendOptimizer, MomentumOptimizer, NesterovAcceleratedOptimizer}
 import at.snn.util.plot.{ChartRenderer, PlotCost}
 import at.snn.util.{NNBuilder, NNRunner}
@@ -28,7 +28,7 @@ object GradientMain extends StrictLogging {
     val choice = StdIn.readInt()
 
     val rawData = choice match {
-      case 1 => WineImporter("src/main/resources/numbers.mat")
+      case 1 => MatlabImporter("src/main/resources/numbers.mat")
       case 2 => WineImporter("src/main/resources/wine/winequality-red.csv")
       case 3 => WineImporter("src/main/resources/wine/winequality-white.csv")
     }
