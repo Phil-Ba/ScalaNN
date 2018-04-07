@@ -2,7 +2,7 @@ package at.snn.util.data
 
 import java.io.File
 
-import at.snn.model.data.RawData
+import at.snn.model.data.{DynamicSizedRawData, RawData}
 import com.univocity.parsers.common.processor.RowListProcessor
 import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
 
@@ -26,7 +26,7 @@ object WineImporter {
     val parser = new CsvParser(settings)
     parser.parse(new File(file))
 
-    val rawData = new RawData(rowProcessor.getHeaders.length - 1, 10)
+    val rawData = new DynamicSizedRawData(rowProcessor.getHeaders.length - 1, 10, false)
     rowProcessor
       .getRows
       .foreach(row => {

@@ -1,6 +1,6 @@
 package at.snn.util.data
 
-import at.snn.model.data.RawData
+import at.snn.model.data.{DynamicSizedRawData, RawData}
 
 import scala.io.Codec
 
@@ -13,7 +13,7 @@ object MatlabImporter {
     val lines = scala.io.Source.fromFile(file)(Codec.ISO8859)
       .getLines()
 
-    val data = new RawData(255, 10)
+    val data = new DynamicSizedRawData(255, 10)
 
     while (lines.hasNext) {
       readHeaders(lines).foreach(header => {
